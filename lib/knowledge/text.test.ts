@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_CHUNK_CHARS, contactHeadline, countryName, eventText, noteChunks, profileText, splitText } from "./text";
+import { MAX_CHUNK_CHARS, backgroundText, contactHeadline, countryName, eventText, noteChunks, profileText, splitText } from "./text";
 
 describe("profileText", () => {
   it("describes a contact with everything known about them", () => {
@@ -82,5 +82,23 @@ describe("splitText", () => {
       expect(c.startsWith("Note about Priya Shah (CTO at Acme), written 2026-10-12:\n")).toBe(true);
       expect(c.length).toBeLessThanOrEqual(MAX_CHUNK_CHARS);
     }
+  });
+});
+
+describe("backgroundText", () => {
+  it("describes the role without company, place or events", () => {
+    expect(
+      backgroundText({
+        title: "Data Scientist",
+        roleFamily: "Data",
+        seniority: "Mid",
+        industry: "Fintech",
+        pastPositions: [{ company: "Globex", title: "Analyst", until: "2024-01-01" }],
+      }),
+    ).toBe("Data Scientist. Data role, Mid level. Industry: Fintech. Previously: Analyst");
+  });
+
+  it("is empty when nothing is known about the role", () => {
+    expect(backgroundText({})).toBeNull();
   });
 });

@@ -7,7 +7,7 @@ import { models } from "@/lib/ai/models";
 import { blindIndexKey, deriveKey } from "@/lib/crypto/keys";
 import { openField, sealField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
-import { contactHeadline, eventText, noteChunks, profileText } from "@/lib/knowledge/text";
+import { backgroundText, contactHeadline, eventText, noteChunks, profileText } from "@/lib/knowledge/text";
 import { adminClient } from "@/lib/supabase/admin";
 import { fromBytea, toBytea } from "@/lib/supabase/bytea";
 import type { createClient } from "@/lib/supabase/server";
@@ -102,7 +102,7 @@ export async function reindexContact(userId: string, contactId: string) {
   const { data: c, error } = await db
     .from("contacts")
     .select(
-      "id, full_name, name_native, title, role_family, seniority, industry_override, city, country, website, past_positions, companies(name, industry)",
+      "id, full_name, name_native, title, role_family, seniority, industry_override, city, country, website, past_positions, background_hash, background_model, companies(name, industry)",
     )
     .eq("id", contactId)
     .eq("user_id", userId)
@@ -158,8 +158,39 @@ export async function reindexContact(userId: string, contactId: string) {
   ];
 
   const result = await syncChunks(userId, { contactId }, desired);
+  const backgroundChanged = await syncBackground(userId, c.id, backgroundText(profile), c.background_hash, c.background_model);
   await db.from("contacts").update({ indexed_at: startedAt }).eq("id", contactId).eq("user_id", userId);
-  return result;
+  return { ...result, backgroundChanged };
+}
+
+/** Keeps the "similar background" embedding current. Returns true if it changed. */
+async function syncBackground(userId: string, contactId: string, text: string | null, storedHash: string | null, storedModel: string | null) {
+  const hash = text ? contentHash(userId, `background|${text}`) : null;
+  if (hash === storedHash && (!text || storedModel === models.embedding)) return false;
+  const db = adminClient();
+  let embedding: string | null = null;
+  if (text) {
+    const { embeddings, usage } = await embedTexts([text], "index");
+    await recordUsage(userId, usage);
+    embedding = toPgVector(embeddings[0]);
+  }
+  const { error } = await db
+    .from("contacts")
+    .update({ background_embedding: embedding, background_model: text ? models.embedding : null, background_hash: hash })
+    .eq("id", contactId)
+    .eq("user_id", userId);
+  if (error) throw error;
+  return true;
+}
+
+/** Recomputes similar-background matches for one person, or a whole network. */
+export async function refreshSimilarity(scope: { contactId: string } | { userId?: string }) {
+  const db = adminClient();
+  const { error } =
+    "contactId" in scope
+      ? await db.rpc("refresh_contact_similarity", { p_contact_id: scope.contactId })
+      : await db.rpc("refresh_user_similarity", { p_user_id: scope.userId });
+  if (error) console.error("[similarity] refresh failed", error.message);
 }
 
 /** Rebuilds an event's own chunk and the chunks of notes filed only under it. */
@@ -232,9 +263,13 @@ export async function indexStale({ userId, limit = 50, concurrency = 4 }: { user
     return q;
   };
   const [{ data: contacts }, { data: events }] = await Promise.all([pick("contacts"), pick("events")]);
+  // Users whose people changed role or background need their similar-people matches redone.
+  const changedBackgrounds = new Set<string>();
   const jobs = [
     ...(events ?? []).map((e) => () => reindexEvent(e.user_id, e.id)),
-    ...(contacts ?? []).map((c) => () => reindexContact(c.user_id, c.id)),
+    ...(contacts ?? []).map((c) => async () => {
+      if ((await reindexContact(c.user_id, c.id))?.backgroundChanged) changedBackgrounds.add(c.user_id);
+    }),
   ].slice(0, limit);
 
   let indexed = 0;
@@ -253,6 +288,7 @@ export async function indexStale({ userId, limit = 50, concurrency = 4 }: { user
       }
     }),
   );
+  for (const user of changedBackgrounds) await refreshSimilarity({ userId: user });
   return { indexed, failed };
 }
 
@@ -282,6 +318,9 @@ export async function requestReindex(supabase: Supabase, userId: string, { conta
   after(async () => {
     if (await globalBudgetExceeded()) return;
     for (const id of events) await reindexEvent(userId, id).catch((err) => console.error("[index] event", err?.message ?? err));
-    for (const id of contacts) await reindexContact(userId, id).catch((err) => console.error("[index] contact", err?.message ?? err));
+    for (const id of contacts) {
+      const result = await reindexContact(userId, id).catch((err) => console.error("[index] contact", err?.message ?? err));
+      if (result?.backgroundChanged) await refreshSimilarity({ contactId: id });
+    }
   });
 }

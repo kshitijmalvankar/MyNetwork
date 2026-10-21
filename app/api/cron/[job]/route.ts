@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { serverEnv } from "@/lib/env";
-import { indexStale } from "@/lib/knowledge/indexer";
+import { indexStale, refreshSimilarity } from "@/lib/knowledge/indexer";
 import { refreshReconnects } from "@/lib/suggestions";
 import { sweepScans } from "@/lib/scans/process";
 
@@ -18,6 +18,8 @@ const jobs: Record<string, () => Promise<unknown>> = {
   "sweep-scans": () => sweepScans({ limit: 30 }),
   "index-stale": () => indexStale({ limit: 200 }),
   "suggest-reconnects": () => refreshReconnects(),
+  // Nightly: a new or changed person can be someone else's closest match too.
+  "refresh-similarity": () => refreshSimilarity({}),
 };
 
 /** Scheduled jobs (Vercel Cron in production, `pnpm cron <job>` locally). */

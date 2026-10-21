@@ -167,16 +167,42 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"contacts": {
+                },"contact_similarity": {
                   Row: {
-                    "address_enc": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"index_requested_at": string,"indexed_at": string | null,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"needs_index": boolean | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
+                    "contact_id": string,"score": number,"similar_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "contact_id": string,"score": number,"similar_id": string,"user_id": string
                   }
                   Update: {
-                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "contact_id"?: string,"score"?: number,"similar_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "contact_similarity_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contact_similarity_similar_id_fkey"
+      columns: ["similar_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"contacts": {
+                  Row: {
+                    "address_enc": string | null,"background_embedding": string | null,"background_hash": string | null,"background_model": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"index_requested_at": string,"indexed_at": string | null,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"needs_index": boolean | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                  }
+                  Update: {
+                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
                   }
                   Relationships: [
                     {
@@ -467,6 +493,12 @@ isOneToOne: false
                            },
 "mfa_satisfied":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"refresh_contact_similarity":
+{ Args: { "p_contact_id": string,"p_limit"?: number,"p_min"?: number }; Returns: undefined
+                           },
+"refresh_user_similarity":
+{ Args: { "p_limit"?: number,"p_min"?: number,"p_user_id"?: string }; Returns: number
                            },
 "release_quota":
 { Args: { "p_amount"?: number,"p_feature": string,"p_user_id": string }; Returns: undefined

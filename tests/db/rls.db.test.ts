@@ -275,3 +275,32 @@ describe("suggestions", () => {
       expect(status).toBe("accepted");
     }));
 });
+
+describe("similar backgrounds", () => {
+  const vec = (x: number, y: number) => `[${Array.from({ length: 1536 }, (_, i) => (i === 0 ? x : i === 1 ? y : 0)).join(",")}]`;
+
+  it("match people across companies only, and only within one network", () =>
+    scenario(async (tx, a, b) => {
+      const [{ id: acme }] = await tx`insert into public.companies (user_id, name, normalized_name) values (${a}, 'Acme', 'acme') returning id`;
+      const add = async (owner: string, name: string, v: string, company: string | null = null) => {
+        const [{ id }] = await tx`insert into public.contacts (user_id, full_name, company_id, background_embedding, background_model)
+                                  values (${owner}, ${name}, ${company}, ${v}::extensions.vector, 'm') returning id`;
+        return id as string;
+      };
+      const me = await add(a, "Me", vec(1, 0), acme);
+      const colleague = await add(a, "Colleague", vec(1, 0.01), acme);
+      const peer = await add(a, "Peer", vec(1, 0.1));
+      await add(a, "Unrelated", vec(0, 1));
+      await add(b, "Someone else's", vec(1, 0));
+
+      await tx`select public.refresh_user_similarity(${a})`;
+      const mine = await tx`select similar_id from public.contact_similarity where contact_id = ${me}`;
+      expect(mine.map((r) => r.similar_id)).toEqual([peer]);
+      expect(mine.map((r) => r.similar_id)).not.toContain(colleague);
+
+      await as(tx, b);
+      expect(await tx`select contact_id from public.contact_similarity`).toHaveLength(0);
+      expect(await rejects(tx, (sp) => sp`select public.refresh_user_similarity()`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select public.refresh_contact_similarity(${me})`)).toBe(true);
+    }));
+});

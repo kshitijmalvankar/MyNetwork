@@ -11,6 +11,7 @@ import {
   HashIcon,
   SearchIcon,
   UserIcon,
+  WaypointsIcon,
   type LucideIcon,
 } from "lucide-react";
 import type { AskUIMessage } from "@/lib/ai/ask";
@@ -150,6 +151,13 @@ function Sources({ text, refs }: { text: string; refs: Refs }) {
           {refs.names.get(id)}
         </Link>
       ))}
+      <Link
+        href={`/graph?people=${people.slice(0, 100).join(",")}`}
+        className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand-subtle px-2.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-brand-subtle/70"
+      >
+        <WaypointsIcon className="size-3.5" />
+        Show on graph
+      </Link>
     </div>
   );
 }

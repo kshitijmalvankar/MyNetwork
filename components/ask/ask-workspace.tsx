@@ -38,6 +38,8 @@ type Props = {
   suggestions: string[];
   backlog: number;
   hasContacts: boolean;
+  /** Pre-fills the box (e.g. from the graph); never sent without the user. */
+  initialQuestion?: string;
 };
 
 function ThreadList({ threads, activeId, onDelete, onNavigate }: { threads: ThreadSummary[]; activeId: string; onDelete: (id: string) => void; onNavigate?: () => void }) {
@@ -73,10 +75,10 @@ function ThreadList({ threads, activeId, onDelete, onNavigate }: { threads: Thre
   );
 }
 
-export function AskWorkspace({ threadId, initialMessages, isNew = false, threads: initialThreads, suggestions, backlog, hasContacts }: Props) {
+export function AskWorkspace({ threadId, initialMessages, isNew = false, threads: initialThreads, suggestions, backlog, hasContacts, initialQuestion }: Props) {
   const router = useRouter();
   const [threads, setThreads] = useState(initialThreads);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQuestion ?? "");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<ThreadSummary | null>(null);
   const [, startTransition] = useTransition();

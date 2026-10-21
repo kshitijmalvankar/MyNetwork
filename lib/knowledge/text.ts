@@ -116,3 +116,17 @@ export function noteChunks(about: string, createdOn: string, body: string): stri
   const header = `Note about ${about}, written ${createdOn}:`;
   return splitText(body, MAX_CHUNK_CHARS - header.length - 1).map((piece) => `${header}\n${piece}`);
 }
+
+/**
+ * What someone does, for "similar background" matching. Leaves out company,
+ * place and events on purpose: the graph links those directly.
+ */
+export function backgroundText(p: Pick<ProfileInput, "title" | "roleFamily" | "seniority" | "industry" | "pastPositions">): string | null {
+  const parts = [
+    p.title,
+    join([p.roleFamily && `${p.roleFamily} role`, p.seniority && `${p.seniority} level`], ", "),
+    p.industry && `Industry: ${p.industry}`,
+    p.pastPositions?.length ? `Previously: ${join(p.pastPositions.slice(0, 3).map((pp) => pp.title), "; ")}` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(". ") : null;
+}
