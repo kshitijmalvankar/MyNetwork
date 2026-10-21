@@ -1,69 +1,81 @@
-import Image from "next/image";
+import Link from "next/link";
+import { LockKeyholeIcon, MessageCircleIcon, NetworkIcon, ScanLineIcon, WaypointsIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const features = [
+  {
+    icon: ScanLineIcon,
+    title: "Scan any card",
+    body: "Snap a photo on your phone or drop in a stack on desktop. Names, titles and companies are filled in for you, in any language.",
+  },
+  {
+    icon: MessageCircleIcon,
+    title: "Ask your network",
+    body: "“Who did I meet from Acme?” “Which engineers mentioned hiring?” Get answers with links to the people.",
+  },
+  {
+    icon: WaypointsIcon,
+    title: "See connections",
+    body: "A living map of everyone you know, grouped by company, event and similar roles.",
+  },
+  {
+    icon: LockKeyholeIcon,
+    title: "Private by design",
+    body: "Contact details, notes and card photos are encrypted. AI providers never keep your data.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative flex min-h-svh flex-col overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[480px] bg-[radial-gradient(60%_60%_at_50%_0%,color-mix(in_oklch,var(--brand)_18%,transparent),transparent)]"
+      />
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-brand text-brand-foreground">
+            <NetworkIcon className="size-4" />
+          </span>
+          MyNetwork
+        </Link>
+        <Button asChild variant="ghost">
+          <Link href="/home">Open app</Link>
+        </Button>
+      </header>
+
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center px-4 pt-16 pb-24 text-center sm:px-6 sm:pt-24">
+        <span className="rounded-full border bg-background/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+          For people who meet a lot of people
+        </span>
+        <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
+          Never lose a business card, or a connection, again.
+        </h1>
+        <p className="mt-5 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg">
+          Scan cards at events, remember what you talked about, and ask your network questions in plain English.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg" className="h-11 bg-brand px-6 text-brand-foreground hover:bg-brand/90">
+            <Link href="/home">Get started</Link>
+          </Button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="mt-20 grid w-full gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((f) => (
+            <div key={f.title} className="rounded-2xl border bg-card/60 p-5 backdrop-blur">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-brand-subtle text-brand">
+                <f.icon className="size-4.5" />
+              </div>
+              <h2 className="mt-4 font-medium">{f.title}</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
+            </div>
+          ))}
         </div>
       </main>
+
+      <footer className="mx-auto w-full max-w-6xl px-4 py-6 text-xs text-muted-foreground sm:px-6">
+        © {new Date().getFullYear()} MyNetwork
+      </footer>
     </div>
   );
 }
