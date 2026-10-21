@@ -36,6 +36,12 @@ A question passes only if every expected name or fact is in the answer, no made-
 | Model | Correct | Cost / question | p50 (full answer) | Notes |
 |---|---|---|---|---|
 | **anthropic/claude-haiku-5.5** | **20/20** | **$0.0017** | 5.0 s | **Default** (`CHAT_MODEL`) |
+| qwen/qwen3-235b-a22b-2507 | 20/20 | $0.0009 | 19.5 s | Accurate but about 4x slower |
+| deepseek/deepseek-v4.1-flash | 19/20 | $0.0012 | 4.2 s | Missed "which company has the most people" |
+| openai/gpt-oss-120b | 16/20 | $0.0001 | 7.8 s | Missed people in role and topic questions |
+| openai/gpt-5-nano | 2/20 | $0.0013 | 69 s | Mostly timed out or answered without looking |
+
+Haiku is the fastest model that answered every question correctly. Qwen is about half the price, but waiting about 20 seconds for an answer is too long for a chat. Worth re-running when cheaper fast models appear: `EVAL_CHAT_MODELS=a/b,c/d pnpm eval ask`.
 
 Embeddings use `openai/text-embedding-3-small` (1536 dimensions), served by Azure with zero data retention, at about $0.02 per million tokens. Indexing all 32 test contacts with their notes and events cost under $0.0001.
 
