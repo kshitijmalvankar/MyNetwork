@@ -3,21 +3,17 @@
 //   pnpm eval ask                      default chat model
 //   EVAL_CHAT_MODELS=a/b,c/d pnpm eval ask
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { parseEnv } from "node:util";
-import { createClient } from "@supabase/supabase-js";
 import { generateText, isStepCount } from "ai";
 import { describe, expect, it } from "vitest";
 import { askInstructions, createAskTools, type AskContext } from "@/lib/ai/ask";
 import { chatModel, costOf } from "@/lib/ai/client";
 import { models } from "@/lib/ai/models";
-import type { Database } from "@/lib/supabase/database.types";
-
-// The real keys are needed to read the seeded (encrypted) data; the unit-test
-// config sets throwaway ones.
-Object.assign(process.env, parseEnv(readFileSync(".env.local", "utf8")));
+import { signInTestUser } from "./session";
 
 const CANDIDATES = (process.env.EVAL_CHAT_MODELS ?? models.chat).split(",");
 const TODAY = "2026-10-21";
+// Matches the chat route; EVAL_REASONING=default uses the provider's default.
+const REASONING = process.env.EVAL_REASONING === "default" ? undefined : ((process.env.EVAL_REASONING ?? "none") as "none" | "low");
 
 type Case = { q: string; expect?: string[]; forbidAllNames?: boolean };
 type Result = {
@@ -67,23 +63,9 @@ const CASES: Case[] = [
 const network = JSON.parse(readFileSync("fixtures/network.json", "utf8")) as { contacts: { name: string }[] };
 const ALL_NAMES = network.contacts.map((c) => c.name);
 
-async function signIn() {
-  const supabase = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: process.env.E2E_TEST_EMAIL!,
-    password: process.env.E2E_TEST_PASSWORD!,
-    // Turnstile's documented always-pass test token (only works with test keys).
-    options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" },
-  });
-  if (error) throw new Error(`Test sign-in failed: ${error.message}. Run pnpm seed:dev and pnpm seed:network first.`);
-  return { supabase, userId: data.user.id };
-}
-
 describe("ask my network", () => {
   it("answers questions about the seeded network", { timeout: 900_000 }, async () => {
-    const { supabase, userId } = await signIn();
+    const { supabase, userId } = await signInTestUser();
     const { data: ids } = await supabase.from("contacts").select("id");
     const realIds = new Set((ids ?? []).map((r) => r.id));
     expect(realIds.size).toBe(ALL_NAMES.length);
@@ -99,7 +81,7 @@ describe("ask my network", () => {
           const started = Date.now();
           try {
             const r = await generateText({
-              model: chatModel(model),
+              model: chatModel(model, { reasoning: REASONING }),
               instructions: askInstructions({ name: "Test User", today: TODAY, timeZone: "UTC" }),
               prompt: c.q,
               tools: createAskTools(ctx),

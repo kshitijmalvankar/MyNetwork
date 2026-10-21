@@ -35,7 +35,8 @@ A question passes only if every expected name or fact is in the answer, no made-
 
 | Model | Correct | Cost / question | p50 (full answer) | Notes |
 |---|---|---|---|---|
-| **anthropic/claude-haiku-5.5** | **20/20** | **$0.0017** | 5.0 s | **Default** (`CHAT_MODEL`) |
+| **anthropic/claude-haiku-5.5**, reasoning off | **20/20** | **$0.0013** | 3.4 s | **Default** (`CHAT_MODEL`) |
+| anthropic/claude-haiku-5.5, default reasoning | 20/20 | $0.0017 | 5.0 s | Same accuracy, slower |
 | qwen/qwen3-235b-a22b-2507 | 20/20 | $0.0009 | 19.5 s | Accurate but about 4x slower |
 | deepseek/deepseek-v4.1-flash | 19/20 | $0.0012 | 4.2 s | Missed "which company has the most people" |
 | openai/gpt-oss-120b | 16/20 | $0.0001 | 7.8 s | Missed people in role and topic questions |
@@ -49,3 +50,27 @@ Embeddings use `openai/text-embedding-3-small` (1536 dimensions), served by Azur
 - Answers start streaming after the lookups, usually 2–4 s in. The lookup steps appear on screen straight away.
 - Search is exact over the user's own chunks, with no approximate index. A shared approximate index filtered by user can silently drop results, and one person's network is small enough to scan.
 - Giving the model a structured people search (company, role, place, event, dates) plus note search was enough. No question needed more than three lookups.
+
+# Briefs and drafts eval (2026-10-21)
+
+Run with `pnpm eval brief` on the same fictional network. There are 8 cases:
+- 4 meeting briefs: a person with notes, a person with an open follow-up, a person with no notes, and a brief tailored to a meeting topic
+- 4 follow-up drafts: email and message, three tones, with and without an instruction
+
+Each case checks for:
+- required facts
+- a length limit
+- links only to real, related people
+- no placeholders like "[Your Name]"
+- a subject line for emails only, and a sign-off with the sender's name
+- no wrong relative dates
+
+| Model | Passed | Cost / item | Average time |
+|---|---|---|---|
+| **anthropic/claude-haiku-5.5** (reasoning off) | **8/8** | **$0.0003** | 1.9 s |
+
+## Findings
+- **Hidden reasoning cut answers short.** Haiku used up to the whole output-token limit on reasoning that isn't shown, so briefs stopped mid-sentence. The portable `reasoning` option isn't passed through by the OpenRouter provider, so `chatModel(id, { reasoning: "none" })` sets OpenRouter's own `reasoning.effort` instead.
+- **Ask with reasoning off** still scored 20/20, and it was faster (p50 3.4 s, down from 5.0 s) and cheaper ($0.0013 per question, down from $0.0017). Ask now runs with reasoning off too.
+- **Drafts need today's date.** Without it, the model wrote "last month" for a call three months earlier.
+- **Drafts must read as if a person wrote them.** They now refer to time naturally and never mention notes, reminders or the app.

@@ -97,6 +97,23 @@ export async function createNote(contactId: string, body: string): Promise<Resul
   }
 }
 
+/** Keeps an AI brief or draft on the contact. It isn't searched by Ask, which only uses your own notes. */
+export async function saveAssistNote(contactId: string, kind: "brief" | "draft", body: string): Promise<Result> {
+  try {
+    const user = await guard();
+    const parsed = noteBody.safeParse(body);
+    if (!parsed.success || !id.safeParse(contactId).success || !["brief", "draft"].includes(kind)) return { ok: false, message: "Nothing to save" };
+    const supabase = await createClient();
+    const { data: contact } = await supabase.from("contacts").select("id").eq("id", contactId).maybeSingle();
+    if (!contact) return { ok: false, message: "Contact not found" };
+    await addNote(supabase, user.id, contactId, parsed.data, kind);
+    refresh(contactId);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
 export async function updateNote(contactId: string, noteId: string, body: string): Promise<Result> {
   try {
     const user = await guard();

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BriefcaseIcon, Building2Icon, ChevronLeftIcon, GlobeIcon, HistoryIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import { AssistCard } from "@/components/contacts/assist";
 import { ContactMenu, LogInteractionDialog } from "@/components/contacts/contact-actions";
 import { EditContactSheet } from "@/components/contacts/edit-contact-sheet";
 import { RemindersCard } from "@/components/contacts/reminders-card";
@@ -11,8 +12,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { loadPersonContext } from "@/lib/ai/brief";
+import { quotaStatus } from "@/lib/ai/metering";
 import { getProfile, requireUser } from "@/lib/auth/dal";
-import { getContactDetail } from "@/lib/contacts/queries";
 import { formatDay, todayIn } from "@/lib/dates";
 import { initials, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -36,14 +38,21 @@ function regionName(code: string | null) {
 export default async function ContactPage({ params }: PageProps<"/contacts/[id]">) {
   const { id } = await params;
   const user = await requireUser();
-  const contact = await getContactDetail(user.id, id);
-  if (!contact) notFound();
-
   const supabase = await createClient();
-  const [profile, { data: events }] = await Promise.all([
+  const person = await loadPersonContext(supabase, user.id, id);
+  if (!person) notFound();
+  const { contact, related } = person;
+
+  const [profile, { data: events }, quota] = await Promise.all([
     getProfile(user.id),
     supabase.from("events").select("id, name, starts_on").order("starts_on", { ascending: false, nullsFirst: false }).limit(100),
+    quotaStatus(user.id, "brief"),
   ]);
+  const knownIds = [
+    contact.id,
+    ...related.map((r) => r.id),
+    ...contact.timeline.flatMap((t) => (t.kind === "interaction" && t.event ? [t.event.id] : [])),
+  ];
   const today = todayIn(profile?.timezone);
   const location = [contact.city, regionName(contact.country)].filter(Boolean).join(", ");
 
@@ -86,7 +95,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="order-2 space-y-4 lg:order-1">
-          <Timeline contactId={contact.id} items={contact.timeline} />
+          <Timeline contactId={contact.id} items={contact.timeline} timeZone={profile?.timezone} />
         </div>
 
         <div className="order-1 space-y-4 lg:order-2">
@@ -126,6 +135,15 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
               </p>
             </CardContent>
           </Card>
+
+          <AssistCard
+            contactId={contact.id}
+            firstName={contact.fullName.split(/\s+/)[0]}
+            emails={contact.emails}
+            knownIds={knownIds}
+            quota={quota}
+            today={today}
+          />
 
           <RemindersCard contactId={contact.id} reminders={contact.reminders} today={today} />
 

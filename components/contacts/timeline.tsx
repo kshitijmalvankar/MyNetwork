@@ -9,7 +9,9 @@ import {
   MailIcon,
   MessageSquareIcon,
   PencilIcon,
+  PenLineIcon,
   PhoneIcon,
+  SparklesIcon,
   StickyNoteIcon,
   Trash2Icon,
   UsersIcon,
@@ -21,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { TimelineItem } from "@/lib/contacts/queries";
+import { formatInstant } from "@/lib/dates";
 
 const INTERACTION: Record<string, { label: string; icon: typeof HandshakeIcon }> = {
   met: { label: "Met", icon: HandshakeIcon },
@@ -30,8 +33,11 @@ const INTERACTION: Record<string, { label: string; icon: typeof HandshakeIcon }>
   message: { label: "Message", icon: MessageSquareIcon },
 };
 
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+const NOTE_KINDS: Record<string, { label: string; icon: typeof HandshakeIcon }> = {
+  brief: { label: "Saved brief", icon: SparklesIcon },
+  draft: { label: "Saved draft", icon: PenLineIcon },
+};
+
 
 function NoteComposer({ contactId }: { contactId: string }) {
   const router = useRouter();
@@ -108,7 +114,7 @@ function NoteItem({ contactId, item }: { contactId: string; item: Extract<Timeli
   );
 }
 
-export function Timeline({ contactId, items }: { contactId: string; items: TimelineItem[] }) {
+export function Timeline({ contactId, items, timeZone }: { contactId: string; items: TimelineItem[]; timeZone?: string | null }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -124,7 +130,8 @@ export function Timeline({ contactId, items }: { contactId: string; items: Timel
         ) : (
           <ol className="relative space-y-5 border-l pl-6">
             {items.map((item) => {
-              const meta = item.kind === "note" ? { label: "Note", icon: StickyNoteIcon } : (INTERACTION[item.type] ?? INTERACTION.met);
+              const meta =
+                item.kind === "note" ? (NOTE_KINDS[item.noteKind] ?? { label: "Note", icon: StickyNoteIcon }) : (INTERACTION[item.type] ?? INTERACTION.met);
               return (
                 <li key={`${item.kind}-${item.id}`} className="relative">
                   <span className="absolute top-0.5 -left-[2.07rem] flex size-6 items-center justify-center rounded-full border bg-background">
@@ -132,7 +139,7 @@ export function Timeline({ contactId, items }: { contactId: string; items: Timel
                   </span>
                   <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">{meta.label}</span>
-                    <span>{fmtDate(item.at)}</span>
+                    <span>{formatInstant(item.at, timeZone)}</span>
                     {item.kind === "interaction" && item.event && (
                       <Link href={`/events/${item.event.id}`} className="inline-flex items-center gap-1 hover:text-foreground">
                         <CalendarDaysIcon className="size-3" /> {item.event.name}

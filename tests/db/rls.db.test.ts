@@ -223,6 +223,15 @@ describe("ask my network", () => {
       expect(await tx`select id from public.chat_threads`).toEqual([{ id: mine }]);
     }));
 
+  it("keeps cached briefs private to their owner", () =>
+    scenario(async (tx, a, b) => {
+      const [{ id: contact }] = await tx`insert into public.contacts (user_id, full_name) values (${b}, 'Theirs') returning id`;
+      await tx`insert into public.ai_cache (user_id, kind, contact_id, input_hash, payload_enc, model) values (${b}, 'brief', ${contact}, 'h', '\\x00', 'm')`;
+      await as(tx, a);
+      expect(await tx`select id from public.ai_cache`).toHaveLength(0);
+      expect(await tx`update public.ai_cache set input_hash = 'x' returning id`).toHaveLength(0);
+    }));
+
   it("searches people only within the caller's contacts", () =>
     scenario(async (tx, a, b) => {
       await tx`insert into public.contacts (user_id, full_name, title) values (${a}, 'Ada Mine', 'Engineer'), (${b}, 'Ada Theirs', 'Engineer')`;

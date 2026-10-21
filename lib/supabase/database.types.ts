@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "ai_usage": {
+            "ai_cache": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"id": string,"input_hash": string,"kind": string,"model": string,"payload_enc": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"id"?: string,"input_hash": string,"kind": string,"model": string,"payload_enc": string,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"id"?: string,"input_hash"?: string,"kind"?: string,"model"?: string,"payload_enc"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_cache_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ai_usage": {
                   Row: {
                     "cost_usd": number,"created_at": string,"escalated": boolean,"feature": string,"id": number,"input_tokens": number,"latency_ms": number | null,"model": string,"ok": boolean,"output_tokens": number,"user_id": string | null
                   }

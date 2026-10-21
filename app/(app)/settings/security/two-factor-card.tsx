@@ -15,6 +15,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
+import { formatInstant } from "@/lib/dates";
 import { confirmTotpEnrollment, removeTotpFactor, startTotpEnrollment } from "../actions";
 import { needsStepUp, useStepUp } from "@/components/security/step-up";
 
@@ -80,7 +81,7 @@ export function TwoFactorCard({ factors }: { factors: Factor[] }) {
             </ItemMedia>
             <ItemContent>
               <ItemTitle>{f.name}</ItemTitle>
-              <ItemDescription>Added {new Date(f.createdAt).toLocaleDateString()}</ItemDescription>
+              <ItemDescription>Added {formatInstant(f.createdAt)}</ItemDescription>
             </ItemContent>
             <ItemActions>
               <Button variant="ghost" size="sm" onClick={() => remove(f.id)} disabled={removing === f.id}>

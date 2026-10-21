@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { ContactDetail } from "@/lib/contacts/queries";
+import { formatDay } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export function RemindersCard({ contactId, reminders, today }: { contactId: string; reminders: ContactDetail["reminders"]; today: string }) {
@@ -82,7 +83,7 @@ export function RemindersCard({ contactId, reminders, today }: { contactId: stri
                 />
                 <div className={cn("min-w-0 flex-1 text-sm", r.doneAt && "text-muted-foreground line-through")}>
                   <div className="flex items-center gap-2">
-                    <span>{new Date(`${day}T12:00:00Z`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
+                    <span>{formatDay(day)}</span>
                     {overdue && <Badge variant="destructive">Overdue</Badge>}
                     {dueToday && <Badge className="bg-brand text-brand-foreground">Today</Badge>}
                     {r.source === "ai" && <Badge variant="secondary">AI</Badge>}

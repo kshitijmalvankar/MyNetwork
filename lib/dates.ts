@@ -10,3 +10,15 @@ export function todayIn(timeZone: string | null | undefined) {
 export function formatDay(isoDate: string) {
   return new Date(`${isoDate.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
 }
+
+/**
+ * A timestamp as a calendar day in the user's time zone. The locale and zone
+ * are fixed, so the server and the browser render the same text.
+ */
+export function formatInstant(iso: string, timeZone?: string | null) {
+  try {
+    return new Date(iso).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric", timeZone: timeZone ?? "UTC" });
+  } catch {
+    return formatDay(iso);
+  }
+}

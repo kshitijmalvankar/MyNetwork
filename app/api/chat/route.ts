@@ -1,4 +1,4 @@
-import { after, NextResponse, type NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import {
   convertToModelMessages,
   createIdGenerator,
@@ -12,14 +12,14 @@ import {
 import { z } from "zod";
 import { askInstructions, createAskTools, type AskContext, type AskUIMessage } from "@/lib/ai/ask";
 import { chatModel, costOf } from "@/lib/ai/client";
-import { consumeQuota, globalBudgetExceeded, recordUsage, releaseQuota } from "@/lib/ai/metering";
+import { guardAiRequest, textError } from "@/lib/ai/guard";
+import { recordUsage, releaseQuota } from "@/lib/ai/metering";
 import { models } from "@/lib/ai/models";
 import { MAX_QUESTION_CHARS } from "@/lib/ask/limits";
 import { ensureThread, loadThread, saveMessages } from "@/lib/ask/threads";
 import { getAuthorizedUser, getProfile } from "@/lib/auth/dal";
 import { todayIn } from "@/lib/dates";
 import { indexStale } from "@/lib/knowledge/indexer";
-import { rateLimit } from "@/lib/ratelimit";
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
@@ -35,30 +35,25 @@ const bodySchema = z.object({
   }),
 });
 
-const fail = (status: number, message: string) => new NextResponse(message, { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });
-
 export async function POST(request: NextRequest) {
   const user = await getAuthorizedUser();
-  if (!user) return fail(401, "Please sign in again.");
+  if (!user) return textError(401, "Please sign in again.");
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return fail(400, "That message couldn't be sent.");
+  if (!parsed.success) return textError(400, "That message couldn't be sent.");
   const { id: threadId, message } = parsed.data;
   const text = message.parts.map((p) => p.text).join("\n").trim();
-  if (!text) return fail(400, "Type a question first.");
-  if (text.length > MAX_QUESTION_CHARS) return fail(400, `Keep questions under ${MAX_QUESTION_CHARS} characters.`);
+  if (!text) return textError(400, "Type a question first.");
+  if (text.length > MAX_QUESTION_CHARS) return textError(400, `Keep questions under ${MAX_QUESTION_CHARS} characters.`);
 
-  if (!(await rateLimit("ask", user.id)).success) return fail(429, "You're asking quickly. Please wait a minute and try again.");
-  if (await globalBudgetExceeded()) return fail(503, "Ask is paused for today. Please try again tomorrow.");
-
-  const quota = await consumeQuota(user.id, "ask");
-  if (!quota.allowed) return fail(429, `You've used all ${quota.quota} questions for this month.`);
+  const blocked = await guardAiRequest(user.id, "ask", "ask", "questions");
+  if (blocked) return blocked;
 
   const supabase = await createClient();
   const history = await loadThread(supabase, user.id, threadId);
   if (history === null && !(await ensureThread(supabase, user.id, threadId, text))) {
     await releaseQuota(user.id, "ask");
-    return fail(404, "This conversation no longer exists.");
+    return textError(404, "This conversation no longer exists.");
   }
 
   const userMessage: AskUIMessage = { id: message.id, role: "user", parts: [{ type: "text", text }] };
@@ -78,7 +73,8 @@ export async function POST(request: NextRequest) {
   let released = false;
 
   const result = streamText({
-    model: chatModel(models.chat),
+    // Reasoning off: same eval accuracy, about a third faster and cheaper.
+    model: chatModel(models.chat, { reasoning: "none" }),
     instructions: askInstructions({ name: profile?.display_name, today: todayIn(timeZone), timeZone }),
     messages: modelMessages,
     tools,

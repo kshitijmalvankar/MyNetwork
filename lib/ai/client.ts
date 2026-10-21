@@ -20,10 +20,12 @@ function openrouter() {
  * that honour every requested parameter (e.g. structured output).
  * The account-level ZDR toggle on OpenRouter is a second, independent guard.
  */
-export function chatModel(modelId: string) {
+export function chatModel(modelId: string, { reasoning }: { reasoning?: "none" | "low" | "medium" | "high" } = {}) {
   return openrouter()(modelId, {
     provider: { zdr: true, data_collection: "deny", require_parameters: true },
     usage: { include: true },
+    // Hidden reasoning counts against maxOutputTokens; simple writing tasks turn it off.
+    ...(reasoning ? { reasoning: { effort: reasoning } } : {}),
   });
 }
 
