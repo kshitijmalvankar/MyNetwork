@@ -247,6 +247,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"insight_summaries": {
+                  Row: {
+                    "created_at": string,"input_hash": string,"model": string,"payload_enc": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"input_hash": string,"model": string,"payload_enc": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"input_hash"?: string,"model"?: string,"payload_enc"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"interactions": {
                   Row: {
                     "contact_id": string,"created_at": string,"event_id": string | null,"id": string,"occurred_at": string,"type": string,"user_id": string
@@ -493,6 +507,9 @@ isOneToOne: false
                            },
 "mfa_satisfied":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"network_insights":
+{ Args: { "p_time_zone"?: string }; Returns: Json
                            },
 "refresh_contact_similarity":
 { Args: { "p_contact_id": string,"p_limit"?: number,"p_min"?: number }; Returns: undefined

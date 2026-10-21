@@ -96,3 +96,20 @@ A single call returns the transcript, summary, language and dated follow-ups.
 - **Size.** At 32 kbps a 5-minute note is about 1.2 MB, well under Vercel's 4.5 MB request limit. A 5-minute note costs roughly $0.003.
 - **Script.** Without an explicit rule, Hindi was sometimes transliterated into Latin script. Asking for "its own script (Hindi in Devanagari)" in the transcript field's description made it consistent.
 - **Typed notes.** Follow-ups use the same rules with the chat model. A keyword check skips the AI call for notes that can't contain a promise ("loves trekking, has two kids").
+
+# Insights summary eval (2026-10-22)
+
+Run with `pnpm eval insights` on the fictional network. It makes five runs on the same statistics. A run passes only if:
+- every number it quotes appears in the statistics it was given (percentages included)
+- it names no one
+- every "ask" action comes with a question
+
+| Model | Passed | Cost / summary | Average time |
+|---|---|---|---|
+| **anthropic/claude-haiku-5.5** (reasoning off) | **5/5** | **$0.00035** | 3.4 s |
+
+## Findings
+- **The model did its own arithmetic and got it wrong** ("28 of your 32 contacts came in since June"; the answer was 32). The useful totals and percentages are now calculated in code and passed in, and the instructions forbid working out new numbers. The eval's "only numbers from the stats" check is what caught this.
+- **Each observation now covers one topic**, so the model doesn't link unrelated numbers (for example, which event this month's new people came from).
+- **Nothing personal is sent.** The model sees only counts and the names of companies, events, roles, industries and places, never a person's name or details. It can only suggest actions from a fixed list, and the app maps those to links, so it never writes a URL.
+- **The statistics are plain SQL and free.** The summary is cached, encrypted, for a week. Rewriting it on request counts as one brief.

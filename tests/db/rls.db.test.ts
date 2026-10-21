@@ -304,3 +304,18 @@ describe("similar backgrounds", () => {
       expect(await rejects(tx, (sp) => sp`select public.refresh_contact_similarity(${me})`)).toBe(true);
     }));
 });
+
+describe("insights", () => {
+  it("count only the caller's own network, and keep summaries private", () =>
+    scenario(async (tx, a, b) => {
+      await tx`insert into public.contacts (user_id, full_name, role_family) values (${a}, 'Mine', 'Engineering'), (${b}, 'Theirs 1', 'Sales'), (${b}, 'Theirs 2', 'Sales')`;
+      await tx`insert into public.insight_summaries (user_id, input_hash, payload_enc, model) values (${b}, 'h', '\\x00', 'm')`;
+
+      await as(tx, a);
+      const [{ stats }] = await tx`select public.network_insights('Asia/Kolkata') as stats`;
+      expect(stats.totals.people).toBe(1);
+      expect(stats.roles).toEqual([{ value: "Engineering", count: 1 }]);
+      expect(stats.growth).toHaveLength(12);
+      expect(await tx`select user_id from public.insight_summaries`).toHaveLength(0);
+    }));
+});
