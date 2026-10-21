@@ -1,0 +1,27 @@
+import { timingSafeEqual } from "node:crypto";
+import { NextResponse, type NextRequest } from "next/server";
+import { serverEnv } from "@/lib/env";
+import { sweepScans } from "@/lib/scans/process";
+
+export const maxDuration = 300;
+
+function authorized(request: NextRequest) {
+  const header = request.headers.get("authorization") ?? "";
+  const expected = Buffer.from(`Bearer ${serverEnv.cronSecret}`);
+  const actual = Buffer.from(header);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+const jobs: Record<string, () => Promise<unknown>> = {
+  "sweep-scans": () => sweepScans({ limit: 30 }),
+};
+
+/** Scheduled jobs (Vercel Cron in production, `pnpm cron <job>` locally). */
+export async function GET(request: NextRequest, { params }: RouteContext<"/api/cron/[job]">) {
+  if (!authorized(request)) return new NextResponse("Unauthorized", { status: 401 });
+  const { job } = await params;
+  const run = jobs[job];
+  if (!run) return new NextResponse("Unknown job", { status: 404 });
+  const result = await run();
+  return NextResponse.json({ ok: true, job, result });
+}

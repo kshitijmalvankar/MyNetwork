@@ -1,6 +1,7 @@
 import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js/min";
 import type { CardExtraction } from "@/lib/ai/card-schema";
 
+/** Field-level problems. Messages never include the values themselves (they are stored unencrypted). */
 export type FieldIssue = { field: string; message: string };
 
 export type NormalizedCard = CardExtraction & {
@@ -62,7 +63,7 @@ export function normalizeAndValidate(card: CardExtraction, defaultRegion?: strin
   const region = card.country && /^[A-Z]{2}$/.test(card.country) ? card.country : defaultRegion;
 
   const emails = [...new Set(card.emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
-  for (const e of emails) if (!EMAIL_RE.test(e)) issues.push({ field: "emails", message: `"${e}" doesn't look like an email` });
+  for (const e of emails) if (!EMAIL_RE.test(e)) issues.push({ field: "emails", message: "An email address doesn't look right" });
 
   const phoneNumbers: string[] = [];
   for (const p of card.phones) {
@@ -71,7 +72,7 @@ export function normalizeAndValidate(card: CardExtraction, defaultRegion?: strin
       if (!phoneNumbers.includes(e164)) phoneNumbers.push(e164);
     } else {
       phoneNumbers.push(p.number.trim());
-      issues.push({ field: "phones", message: `Couldn't read "${p.number}" as a phone number` });
+      issues.push({ field: "phones", message: "A phone number couldn't be read" });
     }
   }
 

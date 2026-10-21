@@ -65,20 +65,14 @@ export async function quotaStatus(userId: string, feature: Feature): Promise<{ u
   return { used: counter?.count ?? 0, quota: Number(limits[feature] ?? 0) };
 }
 
-/** Pauses AI for everyone once today's total spend crosses AI_GLOBAL_DAILY_USD. */
+/** Pauses AI for everyone once today's total spend crosses AI_GLOBAL_DAILY_USD. Fails closed. */
 export async function globalBudgetExceeded(): Promise<boolean> {
   const cap = Number(process.env.AI_GLOBAL_DAILY_USD ?? "5");
   if (!Number.isFinite(cap) || cap <= 0) return false;
-  const startOfDay = new Date();
-  startOfDay.setUTCHours(0, 0, 0, 0);
-  const { data, error } = await adminClient()
-    .from("ai_usage")
-    .select("cost_usd.sum()")
-    .gte("created_at", startOfDay.toISOString())
-    .single();
+  const { data, error } = await adminClient().rpc("ai_spend_today");
   if (error) {
     console.error("[metering] budget check failed", error.message);
-    return false;
+    return true;
   }
-  return Number((data as { sum: number | null }).sum ?? 0) >= cap;
+  return Number(data ?? 0) >= cap;
 }

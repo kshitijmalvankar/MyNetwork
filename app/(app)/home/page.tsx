@@ -5,16 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { PageContainer, PageHeader } from "@/components/shell/page-header";
+import { requireUser } from "@/lib/auth/dal";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Home" };
 
-const stats = [
-  { label: "People", value: 0, icon: UsersIcon },
-  { label: "Companies", value: 0, icon: Building2Icon },
-  { label: "Events", value: 0, icon: CalendarDaysIcon },
-];
+export default async function HomePage() {
+  await requireUser();
+  const supabase = await createClient();
+  const count = (table: "contacts" | "companies" | "events") =>
+    supabase.from(table).select("*", { count: "exact", head: true }).then((r) => r.count ?? 0);
+  const [people, companies, events, toReview] = await Promise.all([
+    count("contacts"),
+    count("companies"),
+    count("events"),
+    supabase.from("scans").select("*", { count: "exact", head: true }).eq("status", "needs_review").then((r) => r.count ?? 0),
+  ]);
+  const stats = [
+    { label: "People", value: people, icon: UsersIcon, href: "/contacts" },
+    { label: "Companies", value: companies, icon: Building2Icon, href: "/contacts" },
+    { label: "Events", value: events, icon: CalendarDaysIcon, href: "/events" },
+  ];
 
-export default function HomePage() {
   return (
     <PageContainer>
       <PageHeader
@@ -28,6 +40,19 @@ export default function HomePage() {
           </Button>
         }
       />
+
+      {toReview > 0 && (
+        <Link
+          href="/review"
+          className="flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-subtle px-4 py-3 text-sm transition-colors hover:bg-brand-subtle/70"
+        >
+          <span>
+            <span className="font-medium">{toReview} {toReview === 1 ? "card is" : "cards are"} ready to review.</span>{" "}
+            <span className="text-muted-foreground">Check them and save to your contacts.</span>
+          </span>
+          <span className="font-medium text-brand">Review →</span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {stats.map((s) => (

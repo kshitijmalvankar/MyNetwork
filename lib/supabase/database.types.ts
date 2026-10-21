@@ -295,7 +295,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "claim_scan":
+            "ai_spend_today":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"claim_scan":
 { Args: { "p_scan_id": string,"p_stale_after"?: string }; Returns: {
               "attempts": number,
 "back_path": string | null,

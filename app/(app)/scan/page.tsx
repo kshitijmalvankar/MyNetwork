@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { ScanLineIcon } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
+import { CardCapture } from "@/components/scan/card-capture";
 import { PageContainer, PageHeader } from "@/components/shell/page-header";
+import { quotaStatus } from "@/lib/ai/metering";
+import { requireUser } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Scan cards" };
 
-export default function ScanPage() {
+export default async function ScanPage() {
+  const user = await requireUser();
+  const { used, quota } = await quotaStatus(user.id, "scan");
+
   return (
-    <PageContainer>
-      <PageHeader title="Scan cards" description="Snap a card with your camera or drop in photos. Front and back, one or many." />
-      <EmptyState
-        icon={ScanLineIcon}
-        title="Card capture is coming next"
-        description="You'll be able to take a photo on your phone or drag in a stack of cards on desktop."
-      />
+    <PageContainer className="max-w-3xl">
+      <PageHeader title="Scan cards" description="Snap a card with your camera, or upload a stack of photos." />
+      <CardCapture remaining={Math.max(0, quota - used)} />
     </PageContainer>
   );
 }

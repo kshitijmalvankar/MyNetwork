@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   // Every app page is per-user and encrypted, and strict CSP nonces require
   // request-time rendering, so Cache Components stays off.
   poweredByHeader: false,
+  serverExternalPackages: ["zxing-wasm"],
   turbopack: {
     rules: {
       "*.css": {

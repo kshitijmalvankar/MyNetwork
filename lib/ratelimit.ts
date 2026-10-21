@@ -13,6 +13,8 @@ export const rules = {
   passwordReset: { limit: 3, window: "1 h" },
   mfa: { limit: 6, window: "5 m" },
   stepUp: { limit: 6, window: "10 m" },
+  upload: { limit: 60, window: "10 m" },
+  review: { limit: 120, window: "10 m" },
 } satisfies Record<string, RateRule>;
 
 export type RuleName = keyof typeof rules;

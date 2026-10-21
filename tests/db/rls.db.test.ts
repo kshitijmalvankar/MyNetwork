@@ -112,3 +112,39 @@ describe("audit_log", () => {
       expect(await rejects(tx, (sp) => sp`delete from public.audit_log`)).toBe(true);
     }));
 });
+
+describe("network tables", () => {
+  it("keep contacts, companies and scans private to their owner", () =>
+    scenario(async (tx, a, b) => {
+      await tx`insert into public.companies (user_id, name, normalized_name) values (${a}, 'Acme', 'acme')`;
+      await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Owned by A')`;
+      await tx`insert into public.scans (user_id, front_path) values (${a}, ${`${a}/cards/x/front`})`;
+      await as(tx, b);
+      expect(await tx`select id from public.contacts`).toHaveLength(0);
+      expect(await tx`select id from public.companies`).toHaveLength(0);
+      expect(await tx`select id from public.scans`).toHaveLength(0);
+      expect(await tx`update public.contacts set full_name = 'Hacked' returning id`).toHaveLength(0);
+      expect(await rejects(tx, (sp) => sp`insert into public.contacts (user_id, full_name) values (${a}, 'Planted')`)).toBe(true);
+    }));
+
+  it("lets owners manage their own rows", () =>
+    scenario(async (tx, a) => {
+      await as(tx, a);
+      const [c] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Mine') returning id`;
+      await tx`insert into public.interactions (user_id, contact_id, type) values (${a}, ${c.id}, 'met')`;
+      const [row] = await tx`select last_contacted_at from public.contacts where id = ${c.id}`;
+      expect(row.last_contacted_at).not.toBeNull();
+    }));
+});
+
+describe("server-only functions", () => {
+  it("cannot be called by signed-in users", () =>
+    scenario(async (tx, a) => {
+      await as(tx, a);
+      expect(await rejects(tx, (sp) => sp`select * from public.consume_quota(${a}, 'scan', -1000)`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select public.release_quota(${a}, 'scan', 1000)`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select * from public.claim_scan(gen_random_uuid())`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select public.ai_spend_today()`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`insert into public.ai_usage (user_id, feature, model) values (${a}, 'scan', 'x')`)).toBe(true);
+    }));
+});
