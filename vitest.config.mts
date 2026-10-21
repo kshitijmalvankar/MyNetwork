@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: process.env.VITEST_DB ? ["tests/db/**/*.db.test.ts"] : ["**/*.test.ts"],
+    include: process.env.VITEST_EVAL ? ["evals/**/*.eval.ts"] : process.env.VITEST_DB ? ["tests/db/**/*.db.test.ts"] : ["**/*.test.ts"],
     exclude: ["node_modules/**", ".next/**", "e2e/**", ...(process.env.VITEST_DB ? [] : ["tests/db/**"])],
     env: {
       APP_MASTER_KEY: Buffer.alloc(32, 1).toString("base64"),

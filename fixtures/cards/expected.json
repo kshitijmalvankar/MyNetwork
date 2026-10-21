@@ -1,0 +1,134 @@
+[
+  {
+    "id": "01-english-qr",
+    "front": "01-english-qr-front.png",
+    "expected": {
+      "fullName": "Ananya Rao",
+      "title": "Senior Software Engineer",
+      "company": "XYZ Technologies",
+      "emails": [
+        "ananya.rao@xyztech.example"
+      ],
+      "phones": [
+        "+14155550123"
+      ],
+      "website": "xyztech.example",
+      "roleFamily": "Engineering",
+      "seniority": "Senior"
+    }
+  },
+  {
+    "id": "02-english-photo",
+    "front": "02-english-photo-front.jpg",
+    "expected": {
+      "fullName": "Marcus Webb",
+      "title": "Project Manager, Cloud Platform",
+      "company": "XYZ Technologies",
+      "emails": [
+        "m.webb@xyztech.example"
+      ],
+      "phones": [
+        "+14155550188"
+      ],
+      "city": "San Francisco",
+      "country": "US",
+      "roleFamily": [
+        "Product",
+        "Operations",
+        "Engineering"
+      ],
+      "seniority": "Lead/Manager"
+    }
+  },
+  {
+    "id": "03-double-sided",
+    "front": "03-double-sided-front.png",
+    "back": "03-double-sided-back.png",
+    "expected": {
+      "fullName": "Sofia Marquez",
+      "title": "Chief Medical Officer",
+      "company": "Northwind Health",
+      "emails": [
+        "sofia.marquez@northwindhealth.example"
+      ],
+      "phones": [
+        "+442079460321",
+        "+447700900456"
+      ],
+      "website": "northwindhealth.example",
+      "city": "London",
+      "country": "GB",
+      "roleFamily": [
+        "Healthcare",
+        "Executive"
+      ],
+      "seniority": "C-level/Founder",
+      "industry": "Healthcare"
+    }
+  },
+  {
+    "id": "04-japanese",
+    "front": "04-japanese-front.png",
+    "expected": {
+      "fullName": "Kenta Tanaka",
+      "nameNative": "田中 健太",
+      "title": "Sales Director",
+      "company": "Sakura Robotics Co., Ltd.",
+      "emails": [
+        "k.tanaka@sakura-robotics.example"
+      ],
+      "phones": [
+        "+81355550142"
+      ],
+      "city": "Tokyo",
+      "country": "JP",
+      "roleFamily": "Sales",
+      "seniority": "Director"
+    }
+  },
+  {
+    "id": "05-hindi-bilingual",
+    "front": "05-hindi-bilingual-front.png",
+    "expected": {
+      "fullName": "Priya Sharma",
+      "nameNative": "प्रिया शर्मा",
+      "title": "Founder & CEO",
+      "company": "Chai & Code Labs Pvt. Ltd.",
+      "emails": [
+        "priya@chaiandcode.example"
+      ],
+      "phones": [
+        "+919876543210"
+      ],
+      "city": "Bengaluru",
+      "country": "IN",
+      "roleFamily": [
+        "Founder",
+        "Executive"
+      ],
+      "seniority": "C-level/Founder"
+    }
+  },
+  {
+    "id": "06-dark-angled",
+    "front": "06-dark-angled-front.jpg",
+    "expected": {
+      "fullName": "Theo Laurent",
+      "title": "Lead Product Designer",
+      "company": "Lumen Studio",
+      "emails": [
+        "theo@lumenstudio.example"
+      ],
+      "phones": [
+        "+33612345678"
+      ],
+      "website": "lumenstudio.example",
+      "country": "FR",
+      "roleFamily": "Design",
+      "seniority": [
+        "Lead/Manager",
+        "Senior"
+      ]
+    }
+  }
+]

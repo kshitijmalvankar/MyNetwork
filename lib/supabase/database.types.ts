@@ -5,7 +5,21 @@ export type Database = {
   
   "public": {
           Tables: {
-            "audit_log": {
+            "ai_usage": {
+                  Row: {
+                    "cost_usd": number,"created_at": string,"escalated": boolean,"feature": string,"id": number,"input_tokens": number,"latency_ms": number | null,"model": string,"ok": boolean,"output_tokens": number,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cost_usd"?: number,"created_at"?: string,"escalated"?: boolean,"feature": string,"id"?: never,"input_tokens"?: number,"latency_ms"?: number | null,"model": string,"ok"?: boolean,"output_tokens"?: number,"user_id"?: string | null
+                  }
+                  Update: {
+                    "cost_usd"?: number,"created_at"?: string,"escalated"?: boolean,"feature"?: string,"id"?: never,"input_tokens"?: number,"latency_ms"?: number | null,"model"?: string,"ok"?: boolean,"output_tokens"?: number,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"audit_log": {
                   Row: {
                     "action": string,"created_at": string,"id": number,"ip_hash": string | null,"metadata": NonNullable<Json>,"target_id": string | null,"target_type": string | null,"user_agent": string | null,"user_id": string | null
                   }
@@ -15,6 +29,180 @@ export type Database = {
                   }
                   Update: {
                     "action"?: string,"created_at"?: string,"id"?: never,"ip_hash"?: string | null,"metadata"?: NonNullable<Json>,"target_id"?: string | null,"target_type"?: string | null,"user_agent"?: string | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"card_images": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"id": string,"path": string,"side": string,"thumb_path": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"id"?: string,"path": string,"side": string,"thumb_path"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"id"?: string,"path"?: string,"side"?: string,"thumb_path"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "card_images_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"companies": {
+                  Row: {
+                    "created_at": string,"domain": string | null,"id": string,"industry": string | null,"name": string,"normalized_name": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"domain"?: string | null,"id"?: string,"industry"?: string | null,"name": string,"normalized_name": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"domain"?: string | null,"id"?: string,"industry"?: string | null,"name"?: string,"normalized_name"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"contact_identifiers": {
+                  Row: {
+                    "blind_index": string,"contact_id": string,"created_at": string,"id": string,"kind": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "blind_index": string,"contact_id": string,"created_at"?: string,"id"?: string,"kind": string,"user_id"?: string
+                  }
+                  Update: {
+                    "blind_index"?: string,"contact_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "contact_identifiers_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"contacts": {
+                  Row: {
+                    "address_enc": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                  }
+                  Update: {
+                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "contacts_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"entitlements": {
+                  Row: {
+                    "plan_id": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "plan_id"?: string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "plan_id"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "entitlements_plan_id_fkey"
+      columns: ["plan_id"]
+isOneToOne: false
+      referencedRelation: "plans"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"events": {
+                  Row: {
+                    "created_at": string,"description_enc": string | null,"id": string,"location": string | null,"name": string,"starts_on": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"location"?: string | null,"name": string,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"location"?: string | null,"name"?: string,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"interactions": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"event_id": string | null,"id": string,"occurred_at": string,"type": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"event_id"?: string | null,"id"?: string,"occurred_at"?: string,"type": string,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"event_id"?: string | null,"id"?: string,"occurred_at"?: string,"type"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "interactions_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "interactions_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notes": {
+                  Row: {
+                    "audio_path": string | null,"body_enc": string,"contact_id": string | null,"created_at": string,"duration_s": number | null,"event_id": string | null,"id": string,"kind": string,"summary_enc": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "audio_path"?: string | null,"body_enc": string,"contact_id"?: string | null,"created_at"?: string,"duration_s"?: number | null,"event_id"?: string | null,"id"?: string,"kind"?: string,"summary_enc"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "audio_path"?: string | null,"body_enc"?: string,"contact_id"?: string | null,"created_at"?: string,"duration_s"?: number | null,"event_id"?: string | null,"id"?: string,"kind"?: string,"summary_enc"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notes_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notes_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"plans": {
+                  Row: {
+                    "created_at": string,"id": string,"limits": NonNullable<Json>,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id": string,"limits": NonNullable<Json>,"name": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"limits"?: NonNullable<Json>,"name"?: string
                   }
                   Relationships: [
                     
@@ -29,6 +217,60 @@ export type Database = {
                   }
                   Update: {
                     "created_at"?: string,"display_name"?: string | null,"id"?: string,"phone_region"?: string,"timezone"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"reminders": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"done_at": string | null,"due_at": string,"id": string,"note_enc": string | null,"source": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"done_at"?: string | null,"due_at": string,"id"?: string,"note_enc"?: string | null,"source"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"done_at"?: string | null,"due_at"?: string,"id"?: string,"note_enc"?: string | null,"source"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reminders_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"scans": {
+                  Row: {
+                    "attempts": number,"back_path": string | null,"batch_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"error": string | null,"extraction_enc": string | null,"front_path": string,"id": string,"model_used": string | null,"qr_payload_enc": string | null,"status": string,"thumb_path": string | null,"updated_at": string,"user_id": string,"validation": Json | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"back_path"?: string | null,"batch_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"extraction_enc"?: string | null,"front_path": string,"id"?: string,"model_used"?: string | null,"qr_payload_enc"?: string | null,"status"?: string,"thumb_path"?: string | null,"updated_at"?: string,"user_id"?: string,"validation"?: Json | null
+                  }
+                  Update: {
+                    "attempts"?: number,"back_path"?: string | null,"batch_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"extraction_enc"?: string | null,"front_path"?: string,"id"?: string,"model_used"?: string | null,"qr_payload_enc"?: string | null,"status"?: string,"thumb_path"?: string | null,"updated_at"?: string,"user_id"?: string,"validation"?: Json | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "scans_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"usage_counters": {
+                  Row: {
+                    "count": number,"feature": string,"period": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "count"?: number,"feature": string,"period": string,"user_id": string
+                  }
+                  Update: {
+                    "count"?: number,"feature"?: string,"period"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -53,7 +295,40 @@ export type Database = {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "claim_scan":
+{ Args: { "p_scan_id": string,"p_stale_after"?: string }; Returns: {
+              "attempts": number,
+"back_path": string | null,
+"batch_id": string | null,
+"claimed_at": string | null,
+"contact_id": string | null,
+"created_at": string,
+"error": string | null,
+"extraction_enc": string | null,
+"front_path": string,
+"id": string,
+"model_used": string | null,
+"qr_payload_enc": string | null,
+"status": string,
+"thumb_path": string | null,
+"updated_at": string,
+"user_id": string,
+"validation": Json | null
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "scans"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"consume_quota":
+{ Args: { "p_amount"?: number,"p_feature": string,"p_user_id": string }; Returns: {
+              "allowed": boolean,"quota": number,"used": number
+            }[]
+                           },
+"release_quota":
+{ Args: { "p_amount"?: number,"p_feature": string,"p_user_id": string }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never
