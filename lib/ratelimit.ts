@@ -15,6 +15,8 @@ export const rules = {
   stepUp: { limit: 6, window: "10 m" },
   upload: { limit: 60, window: "10 m" },
   review: { limit: 120, window: "10 m" },
+  export: { limit: 10, window: "1 h" },
+  edit: { limit: 200, window: "10 m" },
 } satisfies Record<string, RateRule>;
 
 export type RuleName = keyof typeof rules;

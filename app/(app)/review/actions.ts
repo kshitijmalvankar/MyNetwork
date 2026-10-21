@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { reviewedCardSchema } from "@/lib/ai/card-schema";
 import { requireUser } from "@/lib/auth/dal";
-import { createContact } from "@/lib/contacts/create";
+import { audit } from "@/lib/audit";
+import { createContact, mergeCardIntoContact } from "@/lib/contacts/write";
 import { rateLimit } from "@/lib/ratelimit";
 import { getScanForReview } from "@/lib/scans/queries";
 import { processScan } from "@/lib/scans/process";
@@ -17,6 +18,7 @@ const isoDate = z.iso.date();
 const saveSchema = z.object({
   card: reviewedCardSchema,
   nameNative: z.string().trim().max(200).optional(),
+  mergeInto: z.uuid().optional(),
   meeting: z.object({
     eventId: z.uuid().optional(),
     newEventName: z.string().trim().max(200).optional(),
@@ -56,20 +58,32 @@ export async function saveReviewedScan(scanId: string, input: SaveInput): Promis
   const { data: paths } = await supabase.from("scans").select("front_path, back_path, thumb_path").eq("id", scanId).single();
   const { data: profile } = await supabase.from("profiles").select("phone_region").eq("id", user.id).maybeSingle();
 
-  const contactId = await createContact(
-    user.id,
-    { ...parsed.data.card, nameNative: parsed.data.nameNative ?? "", titleNative: scan.stored.card.titleNative, language: scan.stored.card.language },
-    parsed.data.meeting,
-    {
-      sourceScanId: scanId,
-      raw: scan.stored,
-      defaultRegion: profile?.phone_region,
-      images: [
-        { side: "front", path: paths!.front_path, thumbPath: paths!.thumb_path },
-        ...(paths?.back_path ? [{ side: "back" as const, path: paths.back_path }] : []),
-      ],
-    },
-  );
+  const contactInput = {
+    ...parsed.data.card,
+    nameNative: parsed.data.nameNative ?? "",
+    titleNative: scan.stored.card.titleNative,
+    language: scan.stored.card.language,
+  };
+  const saveOpts = {
+    sourceScanId: scanId,
+    raw: scan.stored,
+    defaultRegion: profile?.phone_region,
+    images: [
+      { side: "front" as const, path: paths!.front_path, thumbPath: paths!.thumb_path },
+      ...(paths?.back_path ? [{ side: "back" as const, path: paths.back_path }] : []),
+    ],
+  };
+
+  let contactId: string;
+  if (parsed.data.mergeInto) {
+    const { data: target } = await supabase.from("contacts").select("id").eq("id", parsed.data.mergeInto).maybeSingle();
+    if (!target) return { ok: false, message: "That contact no longer exists." };
+    await mergeCardIntoContact(user.id, target.id, contactInput, parsed.data.meeting, saveOpts);
+    await audit({ userId: user.id, action: "contact.merged", targetType: "contact", targetId: target.id, metadata: { from: "scan" } });
+    contactId = target.id;
+  } else {
+    contactId = await createContact(user.id, contactInput, parsed.data.meeting, saveOpts);
+  }
 
   // The raw reading now lives (encrypted) on the contact; drop the copy on the scan.
   await supabase.from("scans").update({ status: "saved", contact_id: contactId, extraction_enc: null }).eq("id", scanId);

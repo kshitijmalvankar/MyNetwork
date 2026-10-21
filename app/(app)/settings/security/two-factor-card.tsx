@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
 import { confirmTotpEnrollment, removeTotpFactor, startTotpEnrollment } from "../actions";
-import { needsStepUp, useStepUp } from "./step-up";
+import { needsStepUp, useStepUp } from "@/components/security/step-up";
 
 type Factor = { id: string; name: string; createdAt: string };
 type Enrollment = { factorId: string; qrCode: string; secret: string };

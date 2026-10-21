@@ -329,8 +329,21 @@ isOneToOne: false
               "allowed": boolean,"quota": number,"used": number
             }[]
                            },
+"contact_facets":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"event_summaries":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "created_at": string,"id": string,"location": string,"name": string,"people": number,"starts_on": string
+            }[]
+                           },
 "release_quota":
 { Args: { "p_amount"?: number,"p_feature": string,"p_user_id": string }; Returns: undefined
+                           },
+"search_contacts":
+{ Args: { "p_company_id"?: string,"p_country"?: string,"p_event_id"?: string,"p_industry"?: string,"p_limit"?: number,"p_offset"?: number,"p_query"?: string,"p_role_family"?: string,"p_seniority"?: string,"p_sort"?: string }; Returns: {
+              "city": string,"company_id": string,"company_name": string,"country": string,"created_at": string,"full_name": string,"id": string,"industry": string,"last_contacted_at": string,"name_native": string,"role_family": string,"seniority": string,"title": string,"total_count": number
+            }[]
                            }
           }
           Enums: {

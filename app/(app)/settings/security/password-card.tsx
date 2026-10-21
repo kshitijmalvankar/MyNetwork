@@ -9,7 +9,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Spinner } from "@/components/ui/spinner";
 import { PASSWORD_MIN } from "@/lib/auth/schemas";
 import { changePassword } from "../actions";
-import { needsStepUp, useStepUp } from "./step-up";
+import { needsStepUp, useStepUp } from "@/components/security/step-up";
 
 export function PasswordCard() {
   const { withStepUp, expire } = useStepUp();

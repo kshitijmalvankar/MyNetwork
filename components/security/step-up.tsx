@@ -9,7 +9,7 @@ import { useAuthAction } from "@/components/auth/use-auth-action";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import type { FormState } from "@/lib/auth/schemas";
-import { stepUp } from "../actions";
+import { stepUp } from "@/app/(app)/settings/actions";
 
 type Ctx = {
   /** Runs `fn` now if recently confirmed, otherwise after the user re-enters their password. */

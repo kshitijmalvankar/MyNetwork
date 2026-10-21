@@ -14,7 +14,10 @@ export type AuditAction =
   | "auth.mfa_removed"
   | "auth.mfa_verified"
   | "auth.mfa_failed"
-  | "auth.step_up";
+  | "auth.step_up"
+  | "data.export"
+  | "contact.deleted"
+  | "contact.merged";
 
 type AuditEvent = {
   userId: string | null;

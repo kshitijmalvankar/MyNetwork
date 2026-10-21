@@ -1,40 +1,56 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ScanLineIcon, UsersIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, ScanLineIcon, SearchXIcon, UsersIcon } from "lucide-react";
+import { ContactList } from "@/components/contacts/contact-list";
+import { ContactsToolbar } from "@/components/contacts/contacts-toolbar";
+import { ExportButton } from "@/components/contacts/export-button";
 import { EmptyState } from "@/components/empty-state";
+import { StepUpBoundary } from "@/components/security/step-up-boundary";
 import { PageContainer, PageHeader } from "@/components/shell/page-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/dal";
-import { initials, timeAgo } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { getFacets, parseContactFilters, searchContacts } from "@/lib/contacts/queries";
 
 export const metadata: Metadata = { title: "Contacts" };
 
-export default async function ContactsPage() {
+export default async function ContactsPage({ searchParams }: PageProps<"/contacts">) {
   await requireUser();
-  const supabase = await createClient();
-  const { data: contacts } = await supabase
-    .from("contacts")
-    .select("id, full_name, title, role_family, created_at, companies(name)")
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const params = await searchParams;
+  const filters = parseContactFilters(params);
+  const [{ rows, total, page, pageSize }, facets] = await Promise.all([searchContacts(filters), getFacets()]);
+  const filtered = Boolean(filters.q || filters.company || filters.role || filters.seniority || filters.industry || filters.country || filters.event);
+  const empty = total === 0 && !filtered;
+
+  const pageHref = (p: number) => {
+    const next = new URLSearchParams(Object.entries(params).flatMap(([k, v]) => (typeof v === "string" ? [[k, v]] : [])));
+    if (p > 1) next.set("page", String(p));
+    else next.delete("page");
+    return `/contacts${next.size ? `?${next}` : ""}`;
+  };
+  const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <PageContainer>
       <PageHeader
         title="Contacts"
-        description={contacts?.length ? `${contacts.length} ${contacts.length === 1 ? "person" : "people"} in your network.` : "Everyone you've met."}
+        description={empty ? "Everyone you've met." : `${total} ${total === 1 ? "person" : "people"}${filtered ? " match" : " in your network"}`}
         actions={
-          <Button asChild variant="outline">
-            <Link href="/scan">
-              <ScanLineIcon /> Scan a card
-            </Link>
-          </Button>
+          <>
+            {!empty && (
+              <StepUpBoundary>
+                <ExportButton />
+              </StepUpBoundary>
+            )}
+            <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
+              <Link href="/scan">
+                <ScanLineIcon /> <span className="hidden sm:inline">Scan a card</span>
+              </Link>
+            </Button>
+          </>
         }
       />
-      {!contacts?.length ? (
+
+      {empty ? (
         <EmptyState icon={UsersIcon} title="No contacts yet" description="Scan your first business card and the person will appear here.">
           <Button asChild>
             <Link href="/scan">
@@ -43,26 +59,33 @@ export default async function ContactsPage() {
           </Button>
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {contacts.map((c) => {
-            const company = (c.companies as { name: string } | null)?.name;
-            return (
-              <li key={c.id} className="flex items-start gap-3 rounded-xl border bg-card p-4">
-                <Avatar className="size-10">
-                  <AvatarFallback className="bg-brand-subtle text-brand">{initials(c.full_name)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate font-medium">{c.full_name}</p>
-                  <p className="truncate text-sm text-muted-foreground">{[c.title, company].filter(Boolean).join(" · ") || "—"}</p>
-                  <div className="flex items-center gap-2 pt-1">
-                    {c.role_family && <Badge variant="secondary">{c.role_family}</Badge>}
-                    <span className="text-xs text-muted-foreground">Added {timeAgo(c.created_at)}</span>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <ContactsToolbar facets={facets} />
+          {rows.length === 0 ? (
+            <EmptyState icon={SearchXIcon} title="No one matches" description="Try a different search or remove a filter." />
+          ) : (
+            <ContactList rows={rows} />
+          )}
+          {pages > 1 && (
+            <nav className="flex items-center justify-between text-sm text-muted-foreground" aria-label="Pagination">
+              <span>
+                Page {page} of {pages}
+              </span>
+              <div className="flex gap-2">
+                <Button asChild variant="outline" size="sm" aria-disabled={page <= 1} className={page <= 1 ? "pointer-events-none opacity-50" : ""}>
+                  <Link href={pageHref(page - 1)}>
+                    <ChevronLeftIcon /> Previous
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" aria-disabled={page >= pages} className={page >= pages ? "pointer-events-none opacity-50" : ""}>
+                  <Link href={pageHref(page + 1)}>
+                    Next <ChevronRightIcon />
+                  </Link>
+                </Button>
+              </div>
+            </nav>
+          )}
+        </>
       )}
     </PageContainer>
   );

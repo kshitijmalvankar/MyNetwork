@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { PasswordCard } from "./password-card";
-import { StepUpProvider } from "./step-up";
+import { StepUpProvider } from "@/components/security/step-up";
 import { TwoFactorCard } from "./two-factor-card";
 
 export const metadata: Metadata = { title: "Security" };

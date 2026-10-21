@@ -126,6 +126,7 @@ export function ReviewForm({
   const [reminderOn, setReminderOn] = useState(addDays(today, 7));
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState<"save" | "discard" | "reread" | null>(null);
+  const [mergeInto, setMergeInto] = useState<DuplicateCandidate | null>(null);
 
   const set = <K extends keyof ReviewInitial>(key: K, value: ReviewInitial[K]) => setCard((c) => ({ ...c, [key]: value }));
 
@@ -154,6 +155,7 @@ export function ReviewForm({
           industry: card.industry,
         },
         nameNative: card.nameNative,
+        mergeInto: mergeInto?.id,
         meeting: {
           ...event,
           metOn,
@@ -163,7 +165,7 @@ export function ReviewForm({
       });
       setBusy(null);
       if (!res.ok) return void toast.error(res.message);
-      toast.success(`Saved ${card.fullName}`);
+      toast.success(mergeInto ? `Updated ${mergeInto.fullName}` : `Saved ${card.fullName}`);
       goNext(res.nextScanId);
     });
   };
@@ -216,16 +218,33 @@ export function ReviewForm({
             <UsersIcon className="text-warning" />
             <AlertTitle>You may already have this person</AlertTitle>
             <AlertDescription>
-              <ul className="mt-1 space-y-0.5">
+              <ul className="mt-2 space-y-2">
                 {duplicates.map((d) => (
-                  <li key={d.id}>
-                    <span className="font-medium text-foreground">{d.fullName}</span>
-                    {d.company && ` · ${d.company}`}
-                    <span className="text-muted-foreground"> (same {d.reason})</span>
+                  <li key={d.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>
+                      <a href={`/contacts/${d.id}`} target="_blank" rel="noreferrer" className="font-medium text-foreground underline-offset-4 hover:underline">
+                        {d.fullName}
+                      </a>
+                      {d.company && ` · ${d.company}`}
+                      <span className="text-muted-foreground"> (same {d.reason})</span>
+                    </span>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant={mergeInto?.id === d.id ? "default" : "outline"}
+                      onClick={() => setMergeInto(mergeInto?.id === d.id ? null : d)}
+                    >
+                      {mergeInto?.id === d.id ? <CheckIcon /> : null}
+                      {mergeInto?.id === d.id ? "Will update" : "Update instead"}
+                    </Button>
                   </li>
                 ))}
               </ul>
-              Saving will add a separate contact.
+              <p className="mt-2">
+                {mergeInto
+                  ? `Saving adds this card to ${mergeInto.fullName}: new details are combined and a new job moves the old one to their history.`
+                  : "Saving will add a separate contact."}
+              </p>
             </AlertDescription>
           </Alert>
         )}
@@ -423,7 +442,7 @@ export function ReviewForm({
             </Button>
           </div>
           <Button onClick={save} disabled={pending} size="lg" className={cn("h-10 bg-brand px-5 text-brand-foreground hover:bg-brand/90")}>
-            {busy === "save" ? <Spinner /> : <CheckIcon />} Save contact
+            {busy === "save" ? <Spinner /> : <CheckIcon />} {mergeInto ? `Update ${mergeInto.fullName.split(" ")[0]}` : "Save contact"}
           </Button>
         </div>
       </div>

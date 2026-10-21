@@ -9,16 +9,9 @@ import { getProfile, requireUser } from "@/lib/auth/dal";
 import { findDuplicates } from "@/lib/contacts/duplicates";
 import { getScanForReview } from "@/lib/scans/queries";
 import { createClient } from "@/lib/supabase/server";
+import { todayIn } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Review card" };
-
-function todayIn(timeZone: string) {
-  try {
-    return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  } catch {
-    return new Date().toISOString().slice(0, 10);
-  }
-}
 
 export default async function ReviewCardPage({ params }: PageProps<"/review/[scanId]">) {
   const { scanId } = await params;
@@ -71,7 +64,7 @@ export default async function ReviewCardPage({ params }: PageProps<"/review/[sca
         escalated={scan.escalated}
         duplicates={duplicates}
         events={(events ?? []).map((e) => ({ id: e.id, name: e.name, startsOn: e.starts_on }))}
-        today={todayIn(profile?.timezone ?? "UTC")}
+        today={todayIn(profile?.timezone)}
       />
     </PageContainer>
   );
