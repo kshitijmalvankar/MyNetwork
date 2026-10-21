@@ -4,6 +4,7 @@ import { BellIcon, Building2Icon, CalendarDaysIcon, ClockIcon, ScanLineIcon, Spa
 import { EmptyState } from "@/components/empty-state";
 import { FollowUpList, type FollowUp } from "@/components/home/follow-up-list";
 import { PageContainer, PageHeader } from "@/components/shell/page-header";
+import { SuggestionList } from "@/components/suggestions/suggestion-list";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { openField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { todayIn } from "@/lib/dates";
 import { initials, timeAgo } from "@/lib/format";
+import { getSuggestions, refreshReconnects } from "@/lib/suggestions";
 import { fromBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,9 +36,12 @@ export default async function HomePage() {
   const horizon = new Date(`${today}T12:00:00Z`);
   horizon.setUTCDate(horizon.getUTCDate() + 7);
 
+  // Cheap SQL, no AI: adds "get back in touch" suggestions for people it's been a while with.
+  await refreshReconnects(user.id);
+
   const count = (table: "contacts" | "companies" | "events") =>
     supabase.from(table).select("*", { count: "exact", head: true }).then((r) => r.count ?? 0);
-  const [people, companies, events, toReview, { data: reminders }, { data: recent }] = await Promise.all([
+  const [people, companies, events, toReview, { data: reminders }, { data: recent }, suggestions] = await Promise.all([
     count("contacts"),
     count("companies"),
     count("events"),
@@ -49,6 +54,7 @@ export default async function HomePage() {
       .order("due_at")
       .limit(20),
     supabase.from("contacts").select("id, full_name, title, created_at, companies(name)").order("created_at", { ascending: false }).limit(5),
+    getSuggestions(supabase, user.id, { limit: 8 }),
   ]);
 
   const dek = reminders?.some((r) => r.note_enc) ? await getUserDataKey(user.id) : null;
@@ -117,6 +123,20 @@ export default async function HomePage() {
           </Link>
         ))}
       </div>
+
+      {suggestions.length > 0 && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <SparklesIcon className="size-4 text-brand" /> Suggestions
+            </CardTitle>
+            <CardDescription>Follow-ups spotted in your notes, and people it&apos;s been a while since you contacted. Nothing happens unless you add it.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SuggestionList items={suggestions} today={today} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="shadow-none">

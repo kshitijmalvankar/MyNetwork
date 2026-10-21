@@ -62,10 +62,13 @@ export async function deleteContact(contactId: string): Promise<Result> {
     const user = await guard();
     if (!id.safeParse(contactId).success) return { ok: false, message: "Invalid contact" };
     const supabase = await createClient();
-    const { data: images } = await supabase.from("card_images").select("path, thumb_path").eq("contact_id", contactId);
+    const [{ data: images }, { data: recordings }] = await Promise.all([
+      supabase.from("card_images").select("path, thumb_path").eq("contact_id", contactId),
+      supabase.from("notes").select("audio_path").eq("contact_id", contactId).not("audio_path", "is", null),
+    ]);
     const { data, error } = await supabase.from("contacts").delete().eq("id", contactId).select("id").maybeSingle();
     if (error || !data) return { ok: false, message: "Couldn't delete this contact." };
-    await removeFiles(user.id, (images ?? []).flatMap((i) => [i.path, i.thumb_path]));
+    await removeFiles(user.id, [...(images ?? []).flatMap((i) => [i.path, i.thumb_path]), ...(recordings ?? []).map((n) => n.audio_path)]);
     await audit({ userId: user.id, action: "contact.deleted", targetType: "contact", targetId: contactId });
     refresh();
     return { ok: true };
@@ -138,9 +141,10 @@ export async function updateNote(contactId: string, noteId: string, body: string
 
 export async function deleteNote(contactId: string, noteId: string): Promise<Result> {
   try {
-    await guard();
+    const user = await guard();
     const supabase = await createClient();
-    await supabase.from("notes").delete().eq("id", noteId);
+    const { data } = await supabase.from("notes").delete().eq("id", noteId).select("audio_path").maybeSingle();
+    await removeFiles(user.id, [data?.audio_path]);
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -193,6 +197,50 @@ export async function deleteReminder(contactId: string, reminderId: string): Pro
     const { data } = await supabase.from("reminders").delete().eq("id", reminderId).select("contact_id").maybeSingle();
     if (data) await requestReindex(supabase, user.id, { contactIds: [data.contact_id] });
     refresh(contactId);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Suggestions (follow-ups found in notes, people to reconnect with)
+// ---------------------------------------------------------------------------
+
+const acceptSchema = z.object({ dueOn: isoDate, text: z.string().trim().min(1).max(500) });
+
+/** Turns a suggestion into a real follow-up reminder. */
+export async function acceptSuggestion(suggestionId: string, input: z.input<typeof acceptSchema>): Promise<Result> {
+  try {
+    const user = await guard();
+    const parsed = acceptSchema.safeParse(input);
+    if (!parsed.success || !id.safeParse(suggestionId).success) return { ok: false, message: "Pick a date" };
+    const supabase = await createClient();
+    const { data: s } = await supabase.from("ai_suggestions").select("contact_id, status").eq("id", suggestionId).maybeSingle();
+    if (!s || s.status !== "pending") return { ok: false, message: "That suggestion was already handled." };
+    await addReminder(supabase, user.id, s.contact_id, parsed.data.dueOn, parsed.data.text, "ai");
+    await supabase.from("ai_suggestions").update({ status: "accepted", decided_at: new Date().toISOString() }).eq("id", suggestionId);
+    await requestReindex(supabase, user.id, { contactIds: [s.contact_id] });
+    refresh(s.contact_id);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function dismissSuggestion(suggestionId: string): Promise<Result> {
+  try {
+    await guard();
+    if (!id.safeParse(suggestionId).success) return { ok: false, message: "Invalid suggestion" };
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("ai_suggestions")
+      .update({ status: "dismissed", decided_at: new Date().toISOString() })
+      .eq("id", suggestionId)
+      .eq("status", "pending")
+      .select("contact_id")
+      .maybeSingle();
+    refresh(data?.contact_id);
     return { ok: true };
   } catch (err) {
     return fail(err);

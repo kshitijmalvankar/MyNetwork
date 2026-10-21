@@ -240,3 +240,38 @@ describe("ask my network", () => {
       expect(rows.map((r) => r.full_name)).toEqual(["Ada Mine"]);
     }));
 });
+
+describe("suggestions", () => {
+  it("are private to their owner", () =>
+    scenario(async (tx, a, b) => {
+      const [{ id: contact }] = await tx`insert into public.contacts (user_id, full_name) values (${b}, 'Theirs') returning id`;
+      await tx`insert into public.ai_suggestions (user_id, kind, contact_id) values (${b}, 'reconnect', ${contact})`;
+      await as(tx, a);
+      expect(await tx`select id from public.ai_suggestions`).toHaveLength(0);
+      expect(await tx`update public.ai_suggestions set status = 'dismissed' returning id`).toHaveLength(0);
+      expect(await rejects(tx, (sp) => sp`select public.suggest_reconnects()`)).toBe(true);
+    }));
+
+  it("suggest reconnecting with people gone quiet, at most three at a time, never with an open follow-up", () =>
+    scenario(async (tx, a) => {
+      const quiet = [];
+      for (let i = 0; i < 5; i++) {
+        const [{ id }] = await tx`insert into public.contacts (user_id, full_name, created_at) values (${a}, ${`Quiet ${i}`}, now() - interval '200 days') returning id`;
+        quiet.push(id);
+      }
+      await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Recent')`;
+      await tx`insert into public.reminders (user_id, contact_id, due_at) values (${a}, ${quiet[0]}, now() + interval '1 day')`;
+
+      const [{ added }] = await tx`select public.suggest_reconnects(${a}) as added`;
+      expect(added).toBe(3);
+      const rows = await tx`select contact_id from public.ai_suggestions where user_id = ${a} and status = 'pending'`;
+      expect(rows.map((r) => r.contact_id)).not.toContain(quiet[0]);
+      const [{ again }] = await tx`select public.suggest_reconnects(${a}) as again`;
+      expect(again).toBe(0);
+
+      // Getting in touch settles the suggestion.
+      await tx`insert into public.interactions (user_id, contact_id, type) values (${a}, ${rows[0].contact_id}, 'call')`;
+      const [{ status }] = await tx`select status from public.ai_suggestions where contact_id = ${rows[0].contact_id}`;
+      expect(status).toBe("accepted");
+    }));
+});

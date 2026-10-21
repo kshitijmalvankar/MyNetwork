@@ -74,3 +74,25 @@ Each case checks for:
 - **Ask with reasoning off** still scored 20/20, and it was faster (p50 3.4 s, down from 5.0 s) and cheaper ($0.0013 per question, down from $0.0017). Ask now runs with reasoning off too.
 - **Drafts need today's date.** Without it, the model wrote "last month" for a call three months earlier.
 - **Drafts must read as if a person wrote them.** They now refer to time naturally and never mention notes, reminders or the app.
+
+# Voice notes eval (2026-10-21)
+
+Run with `pnpm eval voice` on the synthetic recordings in `fixtures/voice`, which are 32 kbps mono AAC, the format the recorder uses. Rebuild them with `node scripts/make-voice-fixtures.mjs` (macOS). There are 4 recordings:
+- a promise with a relative date ("by next Friday")
+- facts only, which must give no follow-ups
+- two tasks with different dates
+- a Hindi note, whose transcript must stay in Devanagari
+
+A single call returns the transcript, summary, language and dated follow-ups.
+
+| Model | Passed | Cost / note | Average time | Notes |
+|---|---|---|---|---|
+| **google/gemini-3.1-flash-lite** (reasoning off) | **4/4** (3 runs) | **$0.00045** | 1.6 s | **Default** (`VOICE_MODEL`) |
+| google/gemini-3.5-flash-lite (reasoning low) | 4/4 | $0.00053 | 1.6 s | Reasoning can't be turned off |
+| google/gemini-3.8-flash (reasoning low) | 4/4 | $0.00133 | 5.2 s | Same accuracy, 3x the cost |
+
+## Findings
+- **Format.** OpenRouter accepts m4a and ogg audio but not webm. Chrome, Edge and Safari can record AAC in MP4 (`audio/mp4;codecs=mp4a.40.2`), and Firefox records Opus in Ogg, so no server-side conversion is needed. The server checks the file's actual bytes, not the type the browser claimed.
+- **Size.** At 32 kbps a 5-minute note is about 1.2 MB, well under Vercel's 4.5 MB request limit. A 5-minute note costs roughly $0.003.
+- **Script.** Without an explicit rule, Hindi was sometimes transliterated into Latin script. Asking for "its own script (Hindi in Devanagari)" in the transcript field's description made it consistent.
+- **Typed notes.** Follow-ups use the same rules with the chat model. A keyword check skips the AI call for notes that can't contain a promise ("loves trekking, has two kids").

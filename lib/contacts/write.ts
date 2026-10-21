@@ -1,10 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { after } from "next/server";
 import type { ReviewedCard } from "@/lib/ai/card-schema";
 import { normalizeCompanyName, normalizePhone, normalizeWebsite } from "@/lib/ai/validate";
 import { blindIndex, normalizeEmail } from "@/lib/crypto/blind-index";
 import { openField, openJson, sealField, sealJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
+import { suggestFromNote } from "@/lib/suggestions";
 import { fromBytea, toBytea } from "@/lib/supabase/bytea";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -114,10 +116,12 @@ export async function addNote(supabase: Supabase, userId: string, contactId: str
     body_enc: toBytea(sealField(dek, body, { userId, table: "notes", column: "body_enc", rowId: id })),
   });
   if (error) throw error;
+  // Typed notes may contain promises ("I'll send the deck Friday"); look for them after the response is sent.
+  if (kind === "text") after(() => suggestFromNote(userId, contactId, id, body));
   return id;
 }
 
-export async function addReminder(supabase: Supabase, userId: string, contactId: string, dueOn: string, note?: string) {
+export async function addReminder(supabase: Supabase, userId: string, contactId: string, dueOn: string, note?: string, source: "user" | "ai" = "user") {
   const id = randomUUID();
   const dek = note ? await getUserDataKey(userId) : null;
   const { error } = await supabase.from("reminders").insert({
@@ -125,6 +129,7 @@ export async function addReminder(supabase: Supabase, userId: string, contactId:
     user_id: userId,
     contact_id: contactId,
     due_at: `${dueOn}T09:00:00Z`,
+    source,
     note_enc: dek && note ? toBytea(sealField(dek, note, { userId, table: "reminders", column: "note_enc", rowId: id })) : null,
   });
   if (error) throw error;

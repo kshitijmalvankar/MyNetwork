@@ -102,7 +102,7 @@ export async function getFacets(): Promise<Facets> {
 
 export type TimelineItem =
   | { kind: "interaction"; id: string; type: string; at: string; event: { id: string; name: string } | null }
-  | { kind: "note"; id: string; at: string; body: string; noteKind: string };
+  | { kind: "note"; id: string; at: string; body: string; noteKind: string; summary: string | null; hasAudio: boolean; durationS: number | null };
 
 export type ContactDetail = {
   id: string;
@@ -148,7 +148,11 @@ export async function getContactDetail(userId: string, contactId: string, client
       .select("id, type, occurred_at, events(id, name)")
       .eq("contact_id", contactId)
       .order("occurred_at", { ascending: false }),
-    supabase.from("notes").select("id, kind, body_enc, created_at").eq("contact_id", contactId).order("created_at", { ascending: false }),
+    supabase
+      .from("notes")
+      .select("id, kind, body_enc, summary_enc, audio_path, duration_s, created_at")
+      .eq("contact_id", contactId)
+      .order("created_at", { ascending: false }),
     supabase
       .from("reminders")
       .select("id, due_at, note_enc, done_at, source")
@@ -174,6 +178,9 @@ export async function getContactDetail(userId: string, contactId: string, client
       at: n.created_at,
       noteKind: n.kind,
       body: openField(dek, fromBytea(n.body_enc), { userId, table: "notes", column: "body_enc", rowId: n.id }).toString("utf8"),
+      summary: n.summary_enc ? openField(dek, fromBytea(n.summary_enc), { userId, table: "notes", column: "summary_enc", rowId: n.id }).toString("utf8") : null,
+      hasAudio: Boolean(n.audio_path),
+      durationS: n.duration_s,
     })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 

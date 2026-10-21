@@ -7,6 +7,10 @@ export const models = {
   vision: process.env.VISION_MODEL ?? "anthropic/claude-haiku-5.5",
   visionStrong: process.env.VISION_MODEL_STRONG ?? "anthropic/claude-sonnet-5.5",
   chat: process.env.CHAT_MODEL ?? "anthropic/claude-haiku-5.5",
+  // Needs audio input on a zero-data-retention endpoint (see `pnpm eval voice`).
+  voice: process.env.VOICE_MODEL ?? "google/gemini-3.1-flash-lite",
+  // Some audio models can't turn reasoning off; "low" works for those.
+  voiceReasoning: (process.env.VOICE_REASONING ?? "none") as "none" | "low",
   // Changing the embedding model (or its size) needs `pnpm reindex`.
   embedding: process.env.EMBEDDING_MODEL ?? "openai/text-embedding-3-small",
 };

@@ -25,6 +25,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ai_suggestions": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"decided_at": string | null,"due_on": string | null,"id": string,"kind": string,"note_id": string | null,"status": string,"text_enc": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind": string,"note_id"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind"?: string,"note_id"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_suggestions_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_suggestions_note_id_fkey"
+      columns: ["note_id"]
+isOneToOne: false
+      referencedRelation: "notes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ai_usage": {
                   Row: {
                     "cost_usd": number,"created_at": string,"escalated": boolean,"feature": string,"id": number,"input_tokens": number,"latency_ms": number | null,"model": string,"ok": boolean,"output_tokens": number,"user_id": string | null
@@ -449,6 +475,9 @@ isOneToOne: false
 { Args: { "p_company_id"?: string,"p_country"?: string,"p_event_id"?: string,"p_industry"?: string,"p_limit"?: number,"p_offset"?: number,"p_query"?: string,"p_role_family"?: string,"p_seniority"?: string,"p_sort"?: string }; Returns: {
               "city": string,"company_id": string,"company_name": string,"country": string,"created_at": string,"full_name": string,"id": string,"industry": string,"last_contacted_at": string,"name_native": string,"role_family": string,"seniority": string,"title": string,"total_count": number
             }[]
+                           },
+"suggest_reconnects":
+{ Args: { "p_after"?: string,"p_max_pending"?: number,"p_user_id"?: string }; Returns: number
                            }
           }
           Enums: {

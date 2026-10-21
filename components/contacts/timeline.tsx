@@ -8,6 +8,7 @@ import {
   HandshakeIcon,
   MailIcon,
   MessageSquareIcon,
+  MicIcon,
   PencilIcon,
   PenLineIcon,
   PhoneIcon,
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { VoiceRecorder } from "@/components/contacts/voice-recorder";
 import type { TimelineItem } from "@/lib/contacts/queries";
 import { formatInstant } from "@/lib/dates";
 
@@ -34,6 +36,7 @@ const INTERACTION: Record<string, { label: string; icon: typeof HandshakeIcon }>
 };
 
 const NOTE_KINDS: Record<string, { label: string; icon: typeof HandshakeIcon }> = {
+  voice: { label: "Voice note", icon: MicIcon },
   brief: { label: "Saved brief", icon: SparklesIcon },
   draft: { label: "Saved draft", icon: PenLineIcon },
 };
@@ -61,8 +64,9 @@ function NoteComposer({ contactId }: { contactId: string }) {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) save();
         }}
       />
-      <div className="flex justify-end">
-        <Button size="sm" onClick={save} disabled={pending || !body.trim()}>
+      <div className="flex items-center justify-between gap-2">
+        <VoiceRecorder contactId={contactId} />
+        <Button size="sm" onClick={save} disabled={pending || !body.trim()} className="ml-auto">
           {pending && <Spinner />} Add note
         </Button>
       </div>
@@ -99,7 +103,20 @@ function NoteItem({ contactId, item }: { contactId: string; item: Extract<Timeli
         </>
       ) : (
         <div className="flex items-start gap-2">
-          <p className="flex-1 text-sm whitespace-pre-wrap">{item.body}</p>
+          {item.noteKind === "voice" ? (
+            <div className="min-w-0 flex-1 space-y-2">
+              {item.summary && <p className="text-sm">{item.summary}</p>}
+              {item.hasAudio && (
+                <audio controls preload="none" src={`/api/notes/${item.id}/audio`} className="h-9 w-full max-w-sm" />
+              )}
+              <details className="text-sm">
+                <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Transcript</summary>
+                <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{item.body}</p>
+              </details>
+            </div>
+          ) : (
+            <p className="flex-1 text-sm whitespace-pre-wrap">{item.body}</p>
+          )}
           <div className="flex shrink-0 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             <Button size="icon-sm" variant="ghost" aria-label="Edit note" onClick={() => setEditing(true)}>
               <PencilIcon />
@@ -140,6 +157,11 @@ export function Timeline({ contactId, items, timeZone }: { contactId: string; it
                   <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">{meta.label}</span>
                     <span>{formatInstant(item.at, timeZone)}</span>
+                    {item.kind === "note" && item.durationS ? (
+                      <span className="tabular-nums">
+                        {Math.floor(item.durationS / 60)}:{String(item.durationS % 60).padStart(2, "0")}
+                      </span>
+                    ) : null}
                     {item.kind === "interaction" && item.event && (
                       <Link href={`/events/${item.event.id}`} className="inline-flex items-center gap-1 hover:text-foreground">
                         <CalendarDaysIcon className="size-3" /> {item.event.name}

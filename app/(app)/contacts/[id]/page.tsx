@@ -1,13 +1,14 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BriefcaseIcon, Building2Icon, ChevronLeftIcon, GlobeIcon, HistoryIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import { BriefcaseIcon, Building2Icon, ChevronLeftIcon, GlobeIcon, HistoryIcon, MailIcon, MapPinIcon, PhoneIcon, SparklesIcon } from "lucide-react";
 import { AssistCard } from "@/components/contacts/assist";
 import { ContactMenu, LogInteractionDialog } from "@/components/contacts/contact-actions";
 import { EditContactSheet } from "@/components/contacts/edit-contact-sheet";
 import { RemindersCard } from "@/components/contacts/reminders-card";
 import { Timeline } from "@/components/contacts/timeline";
 import { PageContainer } from "@/components/shell/page-header";
+import { SuggestionList } from "@/components/suggestions/suggestion-list";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { loadPersonContext } from "@/lib/ai/brief";
 import { quotaStatus } from "@/lib/ai/metering";
 import { getProfile, requireUser } from "@/lib/auth/dal";
 import { formatDay, todayIn } from "@/lib/dates";
+import { getSuggestions } from "@/lib/suggestions";
 import { initials, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,10 +45,11 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
   if (!person) notFound();
   const { contact, related } = person;
 
-  const [profile, { data: events }, quota] = await Promise.all([
+  const [profile, { data: events }, quota, suggestions] = await Promise.all([
     getProfile(user.id),
     supabase.from("events").select("id, name, starts_on").order("starts_on", { ascending: false, nullsFirst: false }).limit(100),
     quotaStatus(user.id, "brief"),
+    getSuggestions(supabase, user.id, { contactId: id }),
   ]);
   const knownIds = [
     contact.id,
@@ -144,6 +147,19 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
             quota={quota}
             today={today}
           />
+
+          {suggestions.length > 0 && (
+            <Card className="gap-4 border-brand/30 shadow-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <SparklesIcon className="size-4 text-brand" /> Suggested follow-ups
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SuggestionList items={suggestions} today={today} showContact={false} />
+              </CardContent>
+            </Card>
+          )}
 
           <RemindersCard contactId={contact.id} reminders={contact.reminders} today={today} />
 

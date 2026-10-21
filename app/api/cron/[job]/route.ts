@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { serverEnv } from "@/lib/env";
 import { indexStale } from "@/lib/knowledge/indexer";
+import { refreshReconnects } from "@/lib/suggestions";
 import { sweepScans } from "@/lib/scans/process";
 
 export const maxDuration = 300;
@@ -16,6 +17,7 @@ function authorized(request: NextRequest) {
 const jobs: Record<string, () => Promise<unknown>> = {
   "sweep-scans": () => sweepScans({ limit: 30 }),
   "index-stale": () => indexStale({ limit: 200 }),
+  "suggest-reconnects": () => refreshReconnects(),
 };
 
 /** Scheduled jobs (Vercel Cron in production, `pnpm cron <job>` locally). */
