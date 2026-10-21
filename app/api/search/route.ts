@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { searchContacts } from "@/lib/contacts/queries";
 
 /** Quick people search for the ⌘K menu. */
 export async function GET(request: NextRequest) {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return NextResponse.json({ contacts: [] }, { status: 401 });
 
   const q = request.nextUrl.searchParams.get("q")?.trim().slice(0, 100);

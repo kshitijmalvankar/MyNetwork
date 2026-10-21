@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { consumeQuota, releaseQuota } from "@/lib/ai/metering";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { sealField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { MAX_UPLOAD_BYTES, prepareForStorage, UnsupportedImageError } from "@/lib/images";
@@ -19,7 +19,7 @@ const json = (body: unknown, status = 200) => NextResponse.json(body, { status }
 
 /** Upload one card (front, optional back). Responds once stored; reading happens in the background. */
 export async function POST(request: NextRequest) {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return json({ error: "Please sign in again." }, 401);
 
   if (!(await rateLimit("upload", user.id)).success) {

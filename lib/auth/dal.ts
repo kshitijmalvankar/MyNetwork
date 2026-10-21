@@ -23,17 +23,34 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
 });
 
 /**
- * Use at the top of every protected page, action and route handler. Also
- * enforces the second factor for users who enrolled one.
+ * True when the user has a verified authenticator but this session hasn't
+ * passed it yet. Checked by the database from the signed JWT and
+ * auth.mfa_factors (never from cookie contents); fails closed on error.
+ */
+export const secondFactorPending = cache(async (): Promise<boolean> => {
+  const user = await getSessionUser();
+  if (!user || user.aal === "aal2") return false;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("mfa_required");
+  if (error) throw error;
+  return Boolean(data);
+});
+
+/**
+ * Use at the top of every protected page and server action. Also enforces the
+ * second factor for users who enrolled one (the database enforces it too).
  */
 export async function requireUser(): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (user.aal !== "aal2") {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (data?.nextLevel === "aal2") redirect("/mfa");
-  }
+  if (await secondFactorPending()) redirect("/mfa");
+  return user;
+}
+
+/** For route handlers: the user, or null if signed out or still owing a second factor. */
+export async function getAuthorizedUser(): Promise<SessionUser | null> {
+  const user = await getSessionUser();
+  if (!user || (await secondFactorPending())) return null;
   return user;
 }
 

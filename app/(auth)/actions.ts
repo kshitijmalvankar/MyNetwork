@@ -113,9 +113,10 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
 
   await audit({ userId: data.user.id, action: "auth.login" });
 
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  // Verified by the database (signed JWT + auth.mfa_factors), not the cookie.
+  const { data: needsCode } = await supabase.rpc("mfa_required");
   const destination = safeNext(next);
-  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+  if (needsCode !== false) {
     redirect(`/mfa?next=${encodeURIComponent(destination)}`);
   }
   redirect(destination);

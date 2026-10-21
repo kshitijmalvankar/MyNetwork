@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { getDecrypted } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 
 /** Streams a decrypted card image. Ownership is checked through RLS before decrypting. */
 export async function GET(request: NextRequest, { params }: RouteContext<"/api/scans/[id]/image">) {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return new NextResponse(null, { status: 401 });
 
   const { id } = await params;

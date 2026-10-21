@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { audit } from "@/lib/audit";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { hasRecentStepUp } from "@/lib/auth/step-up";
 import { openField, openJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /** Every contact as CSV, decrypted. Requires a recent identity check and is audited. */
 export async function GET() {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
   if (!(await hasRecentStepUp(user.id))) return new NextResponse("Please confirm it's you first.", { status: 403 });
   if (!(await rateLimit("export", user.id)).success) return new NextResponse("Too many exports. Try again later.", { status: 429 });

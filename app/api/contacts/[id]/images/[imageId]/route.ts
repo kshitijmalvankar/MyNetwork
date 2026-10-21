@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { getDecrypted } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 
 /** A saved card photo, decrypted for its owner. `?size=thumb` for the small version. */
 export async function GET(request: NextRequest, { params }: RouteContext<"/api/contacts/[id]/images/[imageId]">) {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return new NextResponse(null, { status: 401 });
   const { id, imageId } = await params;
   if (!z.uuid().safeParse(id).success || !z.uuid().safeParse(imageId).success) return new NextResponse(null, { status: 404 });

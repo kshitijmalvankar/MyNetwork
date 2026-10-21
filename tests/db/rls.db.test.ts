@@ -43,9 +43,9 @@ async function scenario(fn: (tx: postgres.TransactionSql, a: string, b: string) 
   }
 }
 
-async function as(tx: postgres.TransactionSql, userId: string | null) {
+async function as(tx: postgres.TransactionSql, userId: string | null, aal: "aal1" | "aal2" = "aal1") {
   if (userId) {
-    await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: userId, role: "authenticated" })}, true)`;
+    await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: userId, role: "authenticated", aal })}, true)`;
     await tx`set local role authenticated`;
   } else {
     await tx`set local role anon`;
@@ -146,5 +146,34 @@ describe("server-only functions", () => {
       expect(await rejects(tx, (sp) => sp`select * from public.claim_scan(gen_random_uuid())`)).toBe(true);
       expect(await rejects(tx, (sp) => sp`select public.ai_spend_today()`)).toBe(true);
       expect(await rejects(tx, (sp) => sp`insert into public.ai_usage (user_id, feature, model) values (${a}, 'scan', 'x')`)).toBe(true);
+    }));
+});
+
+describe("two-factor enforcement", () => {
+  it("hides everything from a session that hasn't entered its code, for users with an authenticator", () =>
+    scenario(async (tx, a) => {
+      await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Private')`;
+      await tx`insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret)
+               values (gen_random_uuid(), ${a}, 'Phone', 'totp', 'verified', now(), now(), 'SECRET')`;
+
+      await as(tx, a, "aal1");
+      const [{ required }] = await tx`select public.mfa_required() as required`;
+      expect(required).toBe(true);
+      expect(await tx`select id from public.contacts`).toHaveLength(0);
+      expect(await tx`select id from public.profiles`).toHaveLength(0);
+      expect(await rejects(tx, (sp) => sp`insert into public.contacts (user_id, full_name) values (${a}, 'Sneaky')`)).toBe(true);
+
+      await tx`reset role`;
+      await as(tx, a, "aal2");
+      expect(await tx`select id from public.contacts`).toHaveLength(1);
+    }));
+
+  it("doesn't get in the way of users without an authenticator", () =>
+    scenario(async (tx, a) => {
+      await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Visible')`;
+      await as(tx, a, "aal1");
+      const [{ required }] = await tx`select public.mfa_required() as required`;
+      expect(required).toBe(false);
+      expect(await tx`select id from public.contacts`).toHaveLength(1);
     }));
 });

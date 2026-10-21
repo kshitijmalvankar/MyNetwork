@@ -9,7 +9,7 @@ const isDev = process.env.NODE_ENV === "development";
  * Runs before every page and API request:
  *  1. issues a per-request CSP nonce,
  *  2. refreshes the Supabase session cookie,
- *  3. makes optimistic redirects (signed out → /login, second factor pending → /mfa).
+ *  3. makes optimistic redirects (signed out → /login, signed in → away from sign-in pages).
  * Pages and APIs still verify the user themselves; this is not the security boundary.
  */
 export async function proxy(request: NextRequest) {
@@ -57,22 +57,13 @@ export async function proxy(request: NextRequest) {
     return redirect;
   };
 
-  const isProtected = matchesPrefix(pathname, PROTECTED_PREFIXES);
-
-  if (!signedIn && (isProtected || pathname === MFA_PATH)) {
+  if (!signedIn && (matchesPrefix(pathname, PROTECTED_PREFIXES) || pathname === MFA_PATH)) {
     return redirectTo("/login", { next: pathname + search });
   }
-
-  if (signedIn && (isProtected || pathname === MFA_PATH || matchesPrefix(pathname, GUEST_ONLY))) {
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    const needsSecondFactor = aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2";
-
-    if (needsSecondFactor && pathname !== MFA_PATH) {
-      return redirectTo(MFA_PATH, { next: isProtected ? pathname + search : "/home" });
-    }
-    if (!needsSecondFactor && (pathname === MFA_PATH || matchesPrefix(pathname, GUEST_ONLY))) {
-      return redirectTo("/home");
-    }
+  // Signed-in users skip the sign-in pages. Whether a second factor is still
+  // owed is decided by requireUser() and the database, not here.
+  if (signedIn && matchesPrefix(pathname, GUEST_ONLY)) {
+    return redirectTo("/home");
   }
 
   response.headers.set("Content-Security-Policy", csp);

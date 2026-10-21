@@ -337,6 +337,12 @@ isOneToOne: false
               "created_at": string,"id": string,"location": string,"name": string,"people": number,"starts_on": string
             }[]
                            },
+"mfa_required":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"mfa_satisfied":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "release_quota":
 { Args: { "p_amount"?: number,"p_feature": string,"p_user_id": string }; Returns: undefined
                            },

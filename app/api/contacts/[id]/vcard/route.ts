@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSessionUser } from "@/lib/auth/dal";
+import { getAuthorizedUser } from "@/lib/auth/dal";
 import { getContactDetail } from "@/lib/contacts/queries";
 import { toVCard } from "@/lib/export/vcard";
 
 /** One contact as a .vcf file, to save straight into a phone's contacts. */
 export async function GET(_request: NextRequest, { params }: RouteContext<"/api/contacts/[id]/vcard">) {
-  const user = await getSessionUser();
+  const user = await getAuthorizedUser();
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
   const { id } = await params;
   const c = await getContactDetail(user.id, id);
