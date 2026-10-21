@@ -39,9 +39,14 @@ export default function LandingPage() {
           </span>
           MyNetwork
         </Link>
-        <Button asChild variant="ghost">
-          <Link href="/home">Open app</Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button asChild variant="ghost">
+            <Link href="/login">Sign in</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/signup">Get started</Link>
+          </Button>
+        </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center px-4 pt-16 pb-24 text-center sm:px-6 sm:pt-24">
@@ -56,7 +61,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" className="h-11 bg-brand px-6 text-brand-foreground hover:bg-brand/90">
-            <Link href="/home">Get started</Link>
+            <Link href="/signup">Create your free account</Link>
           </Button>
         </div>
 

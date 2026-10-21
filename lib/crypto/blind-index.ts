@@ -23,3 +23,11 @@ export function hashIp(ip: string): string {
   ipKey ??= deriveKey(blindIndexKey(), "ip-hash");
   return createHmac("sha256", ipKey).update(ip).digest("base64url").slice(0, 22);
 }
+
+let rateKey: Buffer | undefined;
+
+/** Pseudonymous key for rate-limiting by email without storing the address. */
+export function hashForRateLimit(value: string): string {
+  rateKey ??= deriveKey(blindIndexKey(), "rate-limit");
+  return createHmac("sha256", rateKey).update(value).digest("base64url").slice(0, 22);
+}

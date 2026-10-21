@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { SettingsIcon } from "lucide-react";
-import { EmptyState } from "@/components/empty-state";
-import { PageContainer, PageHeader } from "@/components/shell/page-header";
+import { getProfile, requireUser } from "@/lib/auth/dal";
+import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await requireUser();
+  const profile = await getProfile(user.id);
+
   return (
-    <PageContainer>
-      <PageHeader title="Settings" description="Profile, security, usage and your data." />
-      <EmptyState
-        icon={SettingsIcon}
-        title="Settings are on the way"
-        description="Profile, two-factor login, exports and account deletion will live here."
-      />
-    </PageContainer>
+    <ProfileForm
+      email={user.email}
+      displayName={profile?.display_name ?? ""}
+      timezone={profile?.timezone ?? "UTC"}
+      phoneRegion={profile?.phone_region ?? "US"}
+    />
   );
 }
