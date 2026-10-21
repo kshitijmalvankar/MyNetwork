@@ -4,7 +4,9 @@ Database objects live in `supabase/migrations` (`pnpm db:push`). The settings
 below are configured once in the Supabase dashboard for each project.
 
 ## Authentication → Sign In / Providers → Email
-- **Confirm email:** on
+- **Confirm email:** currently **off**, so anyone can sign up without a working email provider. Turn it back **on** once custom SMTP (below) is set up, before a public launch. Until then:
+  - email addresses aren't verified
+  - "Forgot password" emails only reach members of your Supabase organization
 - **Secure email change:** on
 - **Minimum password length:** 12
 - **Leaked password protection:** on, if your plan includes it (the app also checks new passwords itself)

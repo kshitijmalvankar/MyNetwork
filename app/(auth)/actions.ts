@@ -63,17 +63,22 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   if (error) {
     console.warn("[auth] sign-up failed:", error.code ?? error.status);
     if (error.code === "email_address_invalid") return { fieldErrors: { email: ["Enter a real email address"] }, values };
+    // Only returned while email confirmation is off; with it on, Supabase hides whether the email exists.
+    if (error.code === "user_already_exists" || error.code === "email_exists") {
+      return { fieldErrors: { email: ["An account with this email already exists. Sign in instead."] }, values };
+    }
     return { message: authMessage(error, "We couldn't create your account. Please try again."), values };
   }
 
-  // An existing email comes back as a user with no identities (no enumeration). Treat both the same.
+  // With confirmation on, an existing email comes back as a user with no identities. Treat both the same.
   const user = data.user;
   if (user && user.identities && user.identities.length > 0) {
     await getUserDataKey(user.id);
     await audit({ userId: user.id, action: "auth.signup" });
   }
 
-  // With email confirmation on (production), there is no session until the link is clicked.
+  // Email confirmation off: Supabase signs the user in straight away.
+  // Email confirmation on: no session until the link in the email is clicked.
   if (data.session) redirect("/home");
   redirect("/verify-email");
 }
