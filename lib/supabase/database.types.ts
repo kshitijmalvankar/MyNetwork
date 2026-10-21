@@ -53,6 +53,40 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"chat_messages": {
+                  Row: {
+                    "created_at": string,"id": string,"message_id": string,"parts_enc": string,"role": string,"thread_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"message_id": string,"parts_enc": string,"role": string,"thread_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"message_id"?: string,"parts_enc"?: string,"role"?: string,"thread_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_messages_thread_id_fkey"
+      columns: ["thread_id"]
+isOneToOne: false
+      referencedRelation: "chat_threads"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"chat_threads": {
+                  Row: {
+                    "created_at": string,"id": string,"title_enc": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"title_enc"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"title_enc"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"companies": {
                   Row: {
                     "created_at": string,"domain": string | null,"id": string,"industry": string | null,"name": string,"normalized_name": string,"updated_at": string,"user_id": string
@@ -89,14 +123,14 @@ isOneToOne: false
                   ]
                 },"contacts": {
                   Row: {
-                    "address_enc": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
+                    "address_enc": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"index_requested_at": string,"indexed_at": string | null,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"needs_index": boolean | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
                   }
                   Update: {
-                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "address_enc"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
                   }
                   Relationships: [
                     {
@@ -129,14 +163,14 @@ isOneToOne: false
                   ]
                 },"events": {
                   Row: {
-                    "created_at": string,"description_enc": string | null,"id": string,"location": string | null,"name": string,"starts_on": string | null,"updated_at": string,"user_id": string
+                    "created_at": string,"description_enc": string | null,"id": string,"index_requested_at": string,"indexed_at": string | null,"location": string | null,"name": string,"needs_index": boolean | null,"starts_on": string | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"location"?: string | null,"name": string,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"location"?: string | null,"name": string,"needs_index"?: never,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"location"?: string | null,"name"?: string,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"description_enc"?: string | null,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"location"?: string | null,"name"?: string,"needs_index"?: never,"starts_on"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -164,6 +198,38 @@ isOneToOne: false
       columns: ["event_id"]
 isOneToOne: false
       referencedRelation: "events"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"knowledge_chunks": {
+                  Row: {
+                    "chunk_index": number,"contact_id": string | null,"content_enc": string,"content_hash": string,"created_at": string,"embedding": string,"embedding_model": string,"event_id": string | null,"id": string,"note_id": string | null,"source_id": string,"source_type": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "chunk_index"?: number,"contact_id"?: string | null,"content_enc": string,"content_hash": string,"created_at"?: string,"embedding": string,"embedding_model": string,"event_id"?: string | null,"id"?: string,"note_id"?: string | null,"source_id": string,"source_type": string,"user_id": string
+                  }
+                  Update: {
+                    "chunk_index"?: number,"contact_id"?: string | null,"content_enc"?: string,"content_hash"?: string,"created_at"?: string,"embedding"?: string,"embedding_model"?: string,"event_id"?: string | null,"id"?: string,"note_id"?: string | null,"source_id"?: string,"source_type"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "knowledge_chunks_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "knowledge_chunks_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "knowledge_chunks_note_id_fkey"
+      columns: ["note_id"]
+isOneToOne: false
+      referencedRelation: "notes"
       referencedColumns: ["id"]
     }
                   ]
@@ -298,6 +364,11 @@ isOneToOne: false
             "ai_spend_today":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"ask_find_contacts":
+{ Args: { "p_city"?: string,"p_company"?: string,"p_company_normalized"?: string,"p_country"?: string,"p_event"?: string,"p_industry"?: string,"p_limit"?: number,"p_met_after"?: string,"p_met_before"?: string,"p_name"?: string,"p_role_family"?: string,"p_seniority"?: string,"p_title"?: string }; Returns: {
+              "city": string,"company": string,"country": string,"events": (string)[],"first_met": string,"full_name": string,"id": string,"industry": string,"last_contacted": string,"role_family": string,"seniority": string,"title": string,"total_count": number
+            }[]
+                           },
 "claim_scan":
 { Args: { "p_scan_id": string,"p_stale_after"?: string }; Returns: {
               "attempts": number,
@@ -335,6 +406,14 @@ isOneToOne: false
 "event_summaries":
 { Args: Record<PropertyKey, never>; Returns: {
               "created_at": string,"id": string,"location": string,"name": string,"people": number,"starts_on": string
+            }[]
+                           },
+"like_pattern":
+{ Args: { "p": string }; Returns: string
+                           },
+"match_chunks":
+{ Args: { "p_contact_id"?: string,"p_embedding": string,"p_limit"?: number,"p_model": string }; Returns: {
+              "contact_id": string,"content_enc": string,"event_id": string,"id": string,"similarity": number,"source_id": string,"source_type": string
             }[]
                            },
 "mfa_required":

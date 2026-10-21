@@ -8,6 +8,7 @@ import { getProfile, requireUser } from "@/lib/auth/dal";
 import { sealField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { addNote, addReminder, recordMeeting, updateContactDetails } from "@/lib/contacts/write";
+import { requestReindex } from "@/lib/knowledge/indexer";
 import { rateLimit } from "@/lib/ratelimit";
 import { removeFiles } from "@/lib/storage";
 import { toBytea } from "@/lib/supabase/bytea";
@@ -48,6 +49,7 @@ export async function editContact(contactId: string, input: z.input<typeof editS
     if (!parsed.success || !id.safeParse(contactId).success) return { ok: false, message: parsed.error?.issues[0]?.message ?? "Invalid input" };
     const profile = await getProfile(user.id);
     await updateContactDetails(user.id, contactId, parsed.data, { defaultRegion: profile?.phone_region });
+    await requestReindex(await createClient(), user.id, { contactIds: [contactId] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -87,6 +89,7 @@ export async function createNote(contactId: string, body: string): Promise<Resul
     const { data: contact } = await supabase.from("contacts").select("id").eq("id", contactId).maybeSingle();
     if (!contact) return { ok: false, message: "Contact not found" };
     await addNote(supabase, user.id, contactId, parsed.data);
+    await requestReindex(supabase, user.id, { contactIds: [contactId] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -108,6 +111,7 @@ export async function updateNote(contactId: string, noteId: string, body: string
       .select("id")
       .maybeSingle();
     if (error || !data) return { ok: false, message: "Couldn't save the note." };
+    await requestReindex(supabase, user.id, { contactIds: [contactId] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -139,6 +143,7 @@ export async function createReminder(contactId: string, dueOn: string, note?: st
     const { data: contact } = await supabase.from("contacts").select("id").eq("id", contactId).maybeSingle();
     if (!contact) return { ok: false, message: "Contact not found" };
     await addReminder(supabase, user.id, contactId, dueOn, note?.trim().slice(0, 500) || undefined);
+    await requestReindex(supabase, user.id, { contactIds: [contactId] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -148,12 +153,15 @@ export async function createReminder(contactId: string, dueOn: string, note?: st
 
 export async function setReminderDone(contactId: string | null, reminderId: string, done: boolean): Promise<Result> {
   try {
-    await guard();
+    const user = await guard();
     const supabase = await createClient();
-    await supabase
+    const { data } = await supabase
       .from("reminders")
       .update({ done_at: done ? new Date().toISOString() : null })
-      .eq("id", reminderId);
+      .eq("id", reminderId)
+      .select("contact_id")
+      .maybeSingle();
+    if (data) await requestReindex(supabase, user.id, { contactIds: [data.contact_id] });
     refresh(contactId ?? undefined);
     return { ok: true };
   } catch (err) {
@@ -163,9 +171,10 @@ export async function setReminderDone(contactId: string | null, reminderId: stri
 
 export async function deleteReminder(contactId: string, reminderId: string): Promise<Result> {
   try {
-    await guard();
+    const user = await guard();
     const supabase = await createClient();
-    await supabase.from("reminders").delete().eq("id", reminderId);
+    const { data } = await supabase.from("reminders").delete().eq("id", reminderId).select("contact_id").maybeSingle();
+    if (data) await requestReindex(supabase, user.id, { contactIds: [data.contact_id] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {
@@ -194,6 +203,7 @@ export async function logInteraction(contactId: string, input: z.input<typeof in
     const { data: contact } = await supabase.from("contacts").select("id").eq("id", contactId).maybeSingle();
     if (!contact) return { ok: false, message: "Contact not found" };
     await recordMeeting(supabase, user.id, contactId, parsed.data);
+    await requestReindex(supabase, user.id, { contactIds: [contactId] });
     refresh(contactId);
     revalidatePath("/events");
     return { ok: true };
@@ -204,9 +214,10 @@ export async function logInteraction(contactId: string, input: z.input<typeof in
 
 export async function deleteInteraction(contactId: string, interactionId: string): Promise<Result> {
   try {
-    await guard();
+    const user = await guard();
     const supabase = await createClient();
-    await supabase.from("interactions").delete().eq("id", interactionId);
+    const { data } = await supabase.from("interactions").delete().eq("id", interactionId).select("contact_id").maybeSingle();
+    if (data) await requestReindex(supabase, user.id, { contactIds: [data.contact_id] });
     refresh(contactId);
     return { ok: true };
   } catch (err) {

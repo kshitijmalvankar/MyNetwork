@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/dal";
 import { sealField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
+import { requestReindex } from "@/lib/knowledge/indexer";
 import { rateLimit } from "@/lib/ratelimit";
 import { toBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
@@ -41,6 +42,11 @@ async function prepare(input: EventInput, eventId: string) {
   } as const;
 }
 
+async function contactsMetAt(supabase: Awaited<ReturnType<typeof createClient>>, eventId: string) {
+  const { data } = await supabase.from("interactions").select("contact_id").eq("event_id", eventId);
+  return (data ?? []).map((i) => i.contact_id);
+}
+
 export async function createEvent(input: EventInput): Promise<EventResult> {
   const id = randomUUID();
   const prep = await prepare(input, id);
@@ -48,6 +54,7 @@ export async function createEvent(input: EventInput): Promise<EventResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("events").insert({ id, user_id: prep.user.id, ...prep.row });
   if (error) return { ok: false, message: "Couldn't create the event." };
+  await requestReindex(supabase, prep.user.id, { eventIds: [id] });
   revalidatePath("/events");
   return { ok: true, id };
 }
@@ -59,16 +66,20 @@ export async function updateEvent(eventId: string, input: EventInput): Promise<E
   const supabase = await createClient();
   const { data, error } = await supabase.from("events").update(prep.row).eq("id", eventId).select("id").maybeSingle();
   if (error || !data) return { ok: false, message: "Couldn't save the event." };
+  // People met there mention the event in their profile, so they change too.
+  await requestReindex(supabase, prep.user.id, { eventIds: [eventId], contactIds: await contactsMetAt(supabase, eventId) });
   revalidatePath("/events");
   revalidatePath(`/events/${eventId}`);
   return { ok: true, id: eventId };
 }
 
 export async function deleteEvent(eventId: string): Promise<EventResult> {
-  await requireUser();
+  const user = await requireUser();
   const supabase = await createClient();
+  const metThere = await contactsMetAt(supabase, eventId);
   const { data, error } = await supabase.from("events").delete().eq("id", eventId).select("id").maybeSingle();
   if (error || !data) return { ok: false, message: "Couldn't delete the event." };
+  await requestReindex(supabase, user.id, { contactIds: metThere });
   revalidatePath("/events");
   revalidatePath("/contacts");
   return { ok: true };

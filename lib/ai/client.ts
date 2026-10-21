@@ -27,6 +27,13 @@ export function chatModel(modelId: string) {
   });
 }
 
+/** Embeddings get the same private routing as chat models. */
+export function embeddingModel(modelId: string) {
+  return openrouter().textEmbeddingModel(modelId, {
+    extraBody: { provider: { zdr: true, data_collection: "deny" }, usage: { include: true } },
+  });
+}
+
 /** OpenRouter's billed cost for a call, in USD. */
 export function costOf(result: { providerMetadata?: Record<string, unknown> }): number {
   const meta = result.providerMetadata?.openrouter as { usage?: { cost?: number } } | undefined;

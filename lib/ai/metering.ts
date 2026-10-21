@@ -1,7 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 
-export type Feature = "scan" | "ask" | "voice_minutes" | "brief";
+export type Feature = "scan" | "ask" | "voice_minutes" | "brief" | "index";
 
 export type UsageEntry = {
   feature: Feature;

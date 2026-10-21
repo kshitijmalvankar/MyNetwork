@@ -19,9 +19,12 @@
     "test:db": "VITEST_DB=1 vitest run",
     "eval": "VITEST_EVAL=1 vitest run",
     "cron": "node scripts/cron.mjs",
-    "dev:upload-fixtures": "node scripts/upload-fixtures.mjs"
+    "dev:upload-fixtures": "node scripts/upload-fixtures.mjs",
+    "seed:network": "tsx --conditions=react-server --env-file=.env.local scripts/seed-network.ts",
+    "reindex": "tsx --conditions=react-server --env-file=.env.local scripts/reindex.ts"
   },
   "dependencies": {
+    "@ai-sdk/react": "4.0.152",
     "@base-ui/react": "^1.9.0",
     "@openrouter/ai-sdk-provider": "^3.1.0",
     "@supabase/ssr": "^0.12.7",
@@ -42,7 +45,9 @@
     "react": "19.3.0",
     "react-day-picker": "^10.0.2",
     "react-dom": "19.3.0",
+    "react-markdown": "10.1.0",
     "recharts": "3.8.0",
+    "remark-gfm": "4.0.1",
     "server-only": "^0.0.1",
     "shadcn": "^4.22.1",
     "sharp": "^0.35.5",
@@ -64,6 +69,7 @@
     "qrcode": "^1.5.4",
     "supabase": "^2.121.0",
     "tailwindcss": "^4",
+    "tsx": "4.23.15",
     "typescript": "^5",
     "vitest": "^4.1.12"
   },

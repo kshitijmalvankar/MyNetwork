@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   // Every app page is per-user and encrypted, and strict CSP nonces require
   // request-time rendering, so Cache Components stays off.
   poweredByHeader: false,
+  // Server action arguments include notes and contact details; keep them out of dev logs.
+  logging: { serverFunctions: false },
   serverExternalPackages: ["zxing-wasm"],
   turbopack: {
     rules: {

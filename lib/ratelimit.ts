@@ -17,6 +17,8 @@ export const rules = {
   review: { limit: 120, window: "10 m" },
   export: { limit: 10, window: "1 h" },
   edit: { limit: 200, window: "10 m" },
+  // Per user; the monthly plan quota is the real cap on questions.
+  ask: { limit: 20, window: "5 m" },
 } satisfies Record<string, RateRule>;
 
 export type RuleName = keyof typeof rules;

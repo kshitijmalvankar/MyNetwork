@@ -3,7 +3,11 @@ import { z } from "zod";
 import { openField, openJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { fromBytea } from "@/lib/supabase/bytea";
+import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+type Supabase = SupabaseClient<Database>;
 
 export const PAGE_SIZE = 50;
 
@@ -125,9 +129,9 @@ export type ContactDetail = {
   reminders: { id: string; dueAt: string; note: string | null; doneAt: string | null; source: string }[];
 };
 
-export async function getContactDetail(userId: string, contactId: string): Promise<ContactDetail | null> {
+export async function getContactDetail(userId: string, contactId: string, client?: Supabase): Promise<ContactDetail | null> {
   if (!z.uuid().safeParse(contactId).success) return null;
-  const supabase = await createClient();
+  const supabase = client ?? (await createClient());
   const { data: c } = await supabase
     .from("contacts")
     .select(

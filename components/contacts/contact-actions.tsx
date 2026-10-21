@@ -143,7 +143,7 @@ export function ContactMenu({ contactId, name }: { contactId: string; name: stri
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={remove} disabled={pending} className="bg-destructive text-white hover:bg-destructive/90">
+            <AlertDialogAction onClick={remove} disabled={pending} variant="destructive">
               {pending && <Spinner />} Delete
             </AlertDialogAction>
           </AlertDialogFooter>

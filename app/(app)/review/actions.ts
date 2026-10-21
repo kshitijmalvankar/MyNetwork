@@ -7,6 +7,7 @@ import { reviewedCardSchema } from "@/lib/ai/card-schema";
 import { requireUser } from "@/lib/auth/dal";
 import { audit } from "@/lib/audit";
 import { createContact, mergeCardIntoContact } from "@/lib/contacts/write";
+import { requestReindex } from "@/lib/knowledge/indexer";
 import { rateLimit } from "@/lib/ratelimit";
 import { getScanForReview } from "@/lib/scans/queries";
 import { processScan } from "@/lib/scans/process";
@@ -87,6 +88,7 @@ export async function saveReviewedScan(scanId: string, input: SaveInput): Promis
 
   // The raw reading now lives (encrypted) on the contact; drop the copy on the scan.
   await supabase.from("scans").update({ status: "saved", contact_id: contactId, extraction_enc: null }).eq("id", scanId);
+  await requestReindex(supabase, user.id, { contactIds: [contactId] });
 
   revalidatePath("/review");
   revalidatePath("/contacts");

@@ -37,7 +37,7 @@ export function DeleteEventButton({ eventId, name }: { eventId: string; name: st
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
-            className="bg-destructive text-white hover:bg-destructive/90"
+            variant="destructive"
             onClick={() =>
               startTransition(async () => {
                 const res = await deleteEvent(eventId);

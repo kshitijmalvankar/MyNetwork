@@ -177,3 +177,57 @@ describe("two-factor enforcement", () => {
       expect(await tx`select id from public.contacts`).toHaveLength(1);
     }));
 });
+
+describe("ask my network", () => {
+  const vector = (x: number) => `[${Array.from({ length: 1536 }, (_, i) => (i === 0 ? x : 0)).join(",")}]`;
+
+  it("only ever searches the caller's own knowledge", () =>
+    scenario(async (tx, a, b) => {
+      const ids: Record<string, string> = {};
+      for (const [owner, label] of [[a, "mine"], [b, "theirs"]] as const) {
+        const [{ id }] = await tx`insert into public.contacts (user_id, full_name) values (${owner}, ${label}) returning id`;
+        ids[label] = id;
+        await tx`insert into public.knowledge_chunks (user_id, source_type, source_id, contact_id, content_enc, content_hash, embedding, embedding_model)
+                 values (${owner}, 'contact', ${id}, ${id}, '\\x00', ${label}, ${vector(1)}::extensions.vector, 'test-model')`;
+      }
+
+      await as(tx, a);
+      const hits = await tx`select contact_id from public.match_chunks(${vector(1)}::extensions.vector, 'test-model', 10)`;
+      expect(hits.map((h) => h.contact_id)).toEqual([ids.mine]);
+      expect(await tx`select id from public.knowledge_chunks where user_id = ${b}`).toHaveLength(0);
+    }));
+
+  it("lets only the server write knowledge chunks", () =>
+    scenario(async (tx, a) => {
+      const [{ id }] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Someone') returning id`;
+      await as(tx, a);
+      expect(
+        await rejects(
+          tx,
+          (sp) => sp`insert into public.knowledge_chunks (user_id, source_type, source_id, contact_id, content_enc, content_hash, embedding, embedding_model)
+                     values (${a}, 'contact', ${id}, ${id}, '\\x00', 'x', ${vector(1)}::extensions.vector, 'test-model')`,
+        ),
+      ).toBe(true);
+    }));
+
+  it("keeps chat threads and messages private to their owner", () =>
+    scenario(async (tx, a, b) => {
+      const [{ id: thread }] = await tx`insert into public.chat_threads (user_id) values (${b}) returning id`;
+      await tx`insert into public.chat_messages (user_id, thread_id, message_id, role, parts_enc) values (${b}, ${thread}, 'm1', 'user', '\\x00')`;
+
+      await as(tx, a);
+      expect(await tx`select id from public.chat_threads`).toHaveLength(0);
+      expect(await tx`select id from public.chat_messages`).toHaveLength(0);
+      expect(await tx`delete from public.chat_threads where id = ${thread} returning id`).toHaveLength(0);
+      const [{ id: mine }] = await tx`insert into public.chat_threads (user_id) values (${a}) returning id`;
+      expect(await tx`select id from public.chat_threads`).toEqual([{ id: mine }]);
+    }));
+
+  it("searches people only within the caller's contacts", () =>
+    scenario(async (tx, a, b) => {
+      await tx`insert into public.contacts (user_id, full_name, title) values (${a}, 'Ada Mine', 'Engineer'), (${b}, 'Ada Theirs', 'Engineer')`;
+      await as(tx, a);
+      const rows = await tx`select full_name from public.ask_find_contacts(p_title => 'engineer')`;
+      expect(rows.map((r) => r.full_name)).toEqual(["Ada Mine"]);
+    }));
+});
