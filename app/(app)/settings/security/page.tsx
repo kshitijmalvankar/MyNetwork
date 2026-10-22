@@ -22,6 +22,9 @@ const ACTION_LABELS: Record<string, string> = {
   "auth.mfa_verified": "Two-factor code accepted",
   "auth.mfa_failed": "Two-factor code rejected",
   "auth.step_up": "Identity confirmed",
+  "data.export": "Contacts downloaded",
+  "contact.deleted": "Contact deleted",
+  "contact.merged": "Contacts merged",
 };
 
 export default async function SecurityPage() {
