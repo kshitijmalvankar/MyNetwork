@@ -4,7 +4,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import sharp from "sharp";
 
-const BRAND = "#5252d8"; // --brand in light mode, oklch(0.52 0.2 277)
+const BRAND = "#c0482d"; // --brand in light mode, oklch(0.56 0.16 34)
 const GLYPH = `
   <rect x="16" y="16" width="6" height="6" rx="1"/>
   <rect x="2" y="16" width="6" height="6" rx="1"/>
