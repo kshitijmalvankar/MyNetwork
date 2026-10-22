@@ -4,9 +4,12 @@ import { clearStepUp } from "@/lib/auth/step-up";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
-  // Same-origin form posts only.
+  // Same-origin form posts only. Compare with the Host the browser used (as
+  // Next.js does for server actions), not request.nextUrl, which can name a
+  // different host behind a proxy or when the app is reached by IP address.
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (origin && URL.parse(origin)?.host !== host) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
@@ -18,5 +21,6 @@ export async function POST(request: NextRequest) {
   await clearStepUp();
   if (userId) await audit({ userId, action: "auth.logout" });
 
-  return NextResponse.redirect(new URL("/login?notice=signed-out", request.url), { status: 303 });
+  // A relative address, so the browser stays on whichever host it used.
+  return new NextResponse(null, { status: 303, headers: { Location: "/login?notice=signed-out" } });
 }
