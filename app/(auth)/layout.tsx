@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LockKeyholeIcon, NetworkIcon } from "lucide-react";
+import { SiteFooter } from "@/components/shell/site-footer";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
@@ -24,7 +25,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             Contact details and notes are encrypted before they are stored.
           </p>
         </div>
-        <p className="relative text-xs text-muted-foreground">© {new Date().getFullYear()} MyNetwork</p>
+        <SiteFooter className="relative mx-0 max-w-none px-0 py-0 sm:px-0" />
       </aside>
 
       <main className="flex flex-col items-center justify-center px-4 py-10 sm:px-6">
@@ -35,6 +36,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           MyNetwork
         </Link>
         <div className="w-full max-w-sm">{children}</div>
+        <SiteFooter className="mt-10 justify-center max-w-sm px-0 py-0 sm:px-0 lg:hidden" />
       </main>
     </div>
   );

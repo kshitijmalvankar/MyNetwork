@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LockKeyholeIcon, MessageCircleIcon, NetworkIcon, ScanLineIcon, WaypointsIcon } from "lucide-react";
+import { SiteFooter } from "@/components/shell/site-footer";
 import { Button } from "@/components/ui/button";
 
 const features = [
@@ -78,9 +79,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <footer className="mx-auto w-full max-w-6xl px-4 py-6 text-xs text-muted-foreground sm:px-6">
-        © {new Date().getFullYear()} MyNetwork
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

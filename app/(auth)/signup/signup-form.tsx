@@ -47,6 +47,17 @@ export function SignupForm() {
         </Field>
         <Turnstile resetKey={state.attempt} />
         <SubmitButton>Create account</SubmitButton>
+        <p className="text-center text-xs text-muted-foreground">
+          By creating an account, you agree to the{" "}
+          <Link href="/terms" className="underline underline-offset-4 hover:text-foreground">
+            terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">
+            privacy policy
+          </Link>
+          .
+        </p>
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
