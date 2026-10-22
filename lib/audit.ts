@@ -16,6 +16,7 @@ export type AuditAction =
   | "auth.mfa_failed"
   | "auth.step_up"
   | "data.export"
+  | "account.deleted"
   | "contact.deleted"
   | "contact.merged";
 

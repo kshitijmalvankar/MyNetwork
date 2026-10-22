@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useStepUp } from "@/components/security/step-up";
 
 /** Downloads every contact as CSV after the user confirms it's them. */
-export function ExportButton() {
+export function ExportButton({ label = "Export", compact = true }: { label?: string; compact?: boolean }) {
   const { withStepUp, expire } = useStepUp();
   const download = () =>
     withStepUp(async () => {
@@ -27,7 +27,7 @@ export function ExportButton() {
     });
   return (
     <Button variant="outline" onClick={download}>
-      <DownloadIcon /> <span className="hidden sm:inline">Export</span>
+      <DownloadIcon /> <span className={compact ? "hidden sm:inline" : undefined}>{label}</span>
     </Button>
   );
 }

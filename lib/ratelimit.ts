@@ -16,6 +16,7 @@ export const rules = {
   upload: { limit: 60, window: "10 m" },
   review: { limit: 120, window: "10 m" },
   export: { limit: 10, window: "1 h" },
+  deleteAccount: { limit: 3, window: "1 h" },
   edit: { limit: 200, window: "10 m" },
   // AI features, per user; the monthly plan quotas are the real caps.
   ask: { limit: 20, window: "5 m" },

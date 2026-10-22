@@ -1,13 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient as createStatelessClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { DELETE_CONFIRMATION } from "@/lib/account/confirm";
+import { deleteAccountData } from "@/lib/account/delete";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth/dal";
 import { pwnedCount } from "@/lib/auth/pwned";
 import { captchaSchema, newPasswordSchema, toFieldErrors, totpCodeSchema, type FormState } from "@/lib/auth/schemas";
-import { hasRecentStepUp, markSteppedUp } from "@/lib/auth/step-up";
+import { clearStepUp, hasRecentStepUp, markSteppedUp } from "@/lib/auth/step-up";
 import { publicEnv } from "@/lib/env";
 import { rateLimit } from "@/lib/ratelimit";
 import { createClient } from "@/lib/supabase/server";
@@ -176,4 +179,43 @@ export async function removeTotpFactor(factorId: string): Promise<FormState> {
   await audit({ userId: user.id, action: "auth.mfa_removed", targetType: "mfa_factor", targetId: factorId });
   revalidatePath("/settings/security");
   return { ok: true, message: "Authenticator removed." };
+}
+
+// ---------------------------------------------------------------------------
+// Delete account and all data
+// ---------------------------------------------------------------------------
+
+export async function deleteAccount(_prev: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser();
+  if (!(await hasRecentStepUp(user.id))) return NEEDS_STEP_UP;
+  if (!(await rateLimit("deleteAccount", user.id)).success) return TOO_MANY;
+  if (String(formData.get("confirm") ?? "").trim().toLowerCase() !== DELETE_CONFIRMATION) {
+    return { fieldErrors: { confirm: [`Type "${DELETE_CONFIRMATION}" to confirm`] } };
+  }
+
+  const supabase = await createClient();
+  const { count } = await supabase.from("contacts").select("id", { count: "exact", head: true });
+
+  const result = await deleteAccountData(user.id);
+  if (!result.ok) {
+    return {
+      message:
+        result.step === "files"
+          ? "Couldn't delete your files, so nothing was deleted. Please try again."
+          : "Your files were deleted, but your account couldn't be. Please try again.",
+    };
+  }
+
+  // The user's own audit entries went with the account. Keep a record that it
+  // was deleted, with no email or other details.
+  await audit({
+    userId: null,
+    action: "account.deleted",
+    targetType: "user",
+    targetId: user.id,
+    metadata: { contacts: count ?? 0, files: result.files },
+  });
+  await supabase.auth.signOut({ scope: "local" });
+  await clearStepUp();
+  redirect("/login?notice=account-deleted");
 }

@@ -9,6 +9,7 @@ const notices: Record<string, string> = {
   confirmed: "Your email is confirmed. Sign in to continue.",
   link: "That link is invalid or has expired. Please try again.",
   "signed-out": "You've been signed out.",
+  "account-deleted": "Your account and everything in it have been deleted.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

@@ -8,6 +8,7 @@ const tabs = [
   { href: "/settings", label: "Profile" },
   { href: "/settings/security", label: "Security" },
   { href: "/settings/usage", label: "Usage" },
+  { href: "/settings/data", label: "Your data" },
 ];
 
 export function SettingsNav() {
