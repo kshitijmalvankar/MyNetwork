@@ -135,6 +135,33 @@ describe("network tables", () => {
       const [row] = await tx`select last_contacted_at from public.contacts where id = ${c.id}`;
       expect(row.last_contacted_at).not.toBeNull();
     }));
+
+  it("keep last contacted up to date, and never change someone else's contact", () =>
+    scenario(async (tx, a, b) => {
+      const [c] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Owned by A') returning id`;
+      await tx`insert into public.interactions (user_id, contact_id, type, occurred_at) values (${a}, ${c.id}, 'met', '2026-09-01')`;
+      // B can point a row at A's contact id, but that must not touch A's contact.
+      await as(tx, b);
+      await tx`insert into public.interactions (user_id, contact_id, type, occurred_at) values (${b}, ${c.id}, 'call', '2026-10-01')`;
+      await tx`reset role`;
+      const [after] = await tx`select last_contacted_at from public.contacts where id = ${c.id}`;
+      expect(after.last_contacted_at.toISOString().slice(0, 10)).toBe("2026-09-01");
+      await tx`delete from public.interactions where contact_id = ${c.id} and user_id = ${a}`;
+      const [cleared] = await tx`select last_contacted_at from public.contacts where id = ${c.id}`;
+      expect(cleared.last_contacted_at).toBeNull();
+    }));
+
+  it("go with their owner when the user is deleted", () =>
+    scenario(async (tx, a) => {
+      const [c] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Owned by A') returning id`;
+      await tx`insert into public.interactions (user_id, contact_id, type) values (${a}, ${c.id}, 'met')`;
+      await tx`delete from auth.users where id = ${a}`;
+      expect(await tx`select id from public.contacts where user_id = ${a}`).toHaveLength(0);
+      expect(await tx`select user_id from public.user_keys where user_id = ${a}`).toHaveLength(0);
+      // The trigger that broke deletion must run as its owner, not as the role deleting the user.
+      const [fn] = await tx`select prosecdef from pg_proc where proname = 'touch_last_contacted'`;
+      expect(fn.prosecdef).toBe(true);
+    }));
 });
 
 describe("server-only functions", () => {
