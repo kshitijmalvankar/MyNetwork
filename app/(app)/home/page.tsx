@@ -11,11 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getProfile, requireUser } from "@/lib/auth/dal";
 import { openField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
-import { todayIn } from "@/lib/dates";
+import { formatDay, todayIn } from "@/lib/dates";
 import { initials, timeAgo } from "@/lib/format";
 import { getSuggestions, refreshReconnects } from "@/lib/suggestions";
 import { fromBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
+import { getUsage, nearLimit } from "@/lib/usage";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -41,7 +42,7 @@ export default async function HomePage() {
 
   const count = (table: "contacts" | "companies" | "events") =>
     supabase.from(table).select("*", { count: "exact", head: true }).then((r) => r.count ?? 0);
-  const [people, companies, events, toReview, { data: reminders }, { data: recent }, suggestions] = await Promise.all([
+  const [people, companies, events, toReview, { data: reminders }, { data: recent }, suggestions, usage] = await Promise.all([
     count("contacts"),
     count("companies"),
     count("events"),
@@ -55,7 +56,9 @@ export default async function HomePage() {
       .limit(20),
     supabase.from("contacts").select("id, full_name, title, created_at, companies(name)").order("created_at", { ascending: false }).limit(5),
     getSuggestions(supabase, user.id, { limit: 8 }),
+    getUsage(supabase, user.id),
   ]);
+  const runningLow = nearLimit(usage)[0];
 
   const dek = reminders?.some((r) => r.note_enc) ? await getUserDataKey(user.id) : null;
   const followUps: FollowUp[] = (reminders ?? []).map((r) => {
@@ -105,6 +108,21 @@ export default async function HomePage() {
             <span className="text-muted-foreground">Check them and save to your contacts.</span>
           </span>
           <span className="shrink-0 font-medium text-brand">Review →</span>
+        </Link>
+      )}
+
+      {runningLow && (
+        <Link
+          href="/settings/usage"
+          className="flex items-center justify-between gap-3 rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm transition-colors hover:bg-warning/15"
+        >
+          <span>
+            <span className="font-medium">
+              You&apos;ve used {runningLow.used} of {runningLow.quota} {runningLow.noun} this month.
+            </span>{" "}
+            <span className="text-muted-foreground">More on {formatDay(usage.resetsOn)}.</span>
+          </span>
+          <span className="shrink-0 font-medium">Usage →</span>
         </Link>
       )}
 

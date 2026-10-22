@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { href: "/settings", label: "Profile" },
   { href: "/settings/security", label: "Security" },
+  { href: "/settings/usage", label: "Usage" },
 ];
 
 export function SettingsNav() {
