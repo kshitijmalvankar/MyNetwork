@@ -16,6 +16,9 @@ try {
     execFileSync("afconvert", ["-f", "m4af", "-d", "aac", "-b", "32000", "-c", "1", aiff, `fixtures/voice/${f.id}.m4a`]);
     console.log(`fixtures/voice/${f.id}.m4a`);
   }
+  // The end-to-end tests play this through the browser's fake microphone, which needs WAV.
+  execFileSync("afconvert", ["-f", "WAVE", "-d", "LEI16@8000", "-c", "1", "fixtures/voice/promise-with-date.m4a", "fixtures/voice/promise-with-date.wav"]);
+  console.log("fixtures/voice/promise-with-date.wav");
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

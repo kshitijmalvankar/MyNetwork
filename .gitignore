@@ -59,3 +59,9 @@ evals/results/*
 /certificates/
 *.key
 *.crt
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.auth/

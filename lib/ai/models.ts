@@ -1,3 +1,5 @@
+import { aiMode } from "@/lib/ai/mode";
+
 /**
  * Model choices, overridable per environment. Defaults are the cheapest models
  * that pass the evals (`pnpm eval`); the strong tier is only used when
@@ -11,8 +13,9 @@ export const models = {
   voice: process.env.VOICE_MODEL ?? "google/gemini-3.1-flash-lite",
   // Some audio models can't turn reasoning off; "low" works for those.
   voiceReasoning: (process.env.VOICE_REASONING ?? "none") as "none" | "low",
-  // Changing the embedding model (or its size) needs `pnpm reindex`.
-  embedding: process.env.EMBEDDING_MODEL ?? "openai/text-embedding-3-small",
+  // Changing the embedding model (or its size) needs `pnpm reindex`. Test runs
+  // use local word hashing under its own name, so its vectors never mix with real ones.
+  embedding: aiMode() === "live" ? (process.env.EMBEDDING_MODEL ?? "openai/text-embedding-3-small") : "local/hashed-words",
 };
 
 /** Must match the vector size in the knowledge_chunks table. */

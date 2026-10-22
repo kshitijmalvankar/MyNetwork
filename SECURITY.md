@@ -108,6 +108,7 @@ Only the small wrapped keys change; encrypted contacts, notes and files are not 
 
 - All model calls go through OpenRouter with `provider.zdr = true` and `data_collection: "deny"` on every request. Turn on the account-level zero-data-retention setting as a second, independent guard.
 - Each feature sends only the context it needs (see the privacy policy). Card text, notes and retrieved snippets are passed as quoted data, not instructions.
+- The test-only AI modes (`AI_MODE=record` and `mock`, which save and replay responses) are refused when running on Vercel.
 - The tools available to Ask are read-only. AI output never sends messages or changes data without the user accepting it.
 - **Spend limits:**
   - per-user rate limits

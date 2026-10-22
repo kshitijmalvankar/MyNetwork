@@ -17,6 +17,8 @@
     "hooks:install": "node -e \"require('fs').writeFileSync('.git/hooks/pre-commit','#!/bin/sh\\npnpm -s secrets:check\\n',{mode:0o755})\"",
     "seed:dev": "node scripts/seed-dev.mjs",
     "test:db": "VITEST_DB=1 vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:record": "AI_MODE=record playwright test",
     "eval": "VITEST_EVAL=1 vitest run",
     "cron": "node scripts/cron.mjs",
     "dev:upload-fixtures": "node scripts/upload-fixtures.mjs",
@@ -61,6 +63,8 @@
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
+    "@ai-sdk/provider": "4.0.31",
+    "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",
     "@types/qrcode": "^1.5.6",

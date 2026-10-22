@@ -1,0 +1,50 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "settings": {
+    "reasoning": "none"
+  },
+  "recordedOn": "2026-10-22",
+  "key": "32263535f0ef1ee628369854ef263e48",
+  "looseKey": "881b7ccf5260b381ec294d151a59cd81",
+  "ids": [],
+  "request": [
+    {
+      "role": "system",
+      "content": "You write the short summary at the top of the Insights page for Asha Rao, who keeps track of people they meet at networking events. Today is <date>.\n\n- headline: one friendly sentence about where their network stands.\n- observations: two to four specific points, each under 25 words and each with a number from the stats (for example \"Engineering is your biggest group: 7 of 32 people\"). Each point covers one topic and uses only that topic's numbers: growth (people added), who they are (roles, industries, seniority, places, companies), events, or keeping in touch (time since last contact, follow-ups). Include at least one thing worth acting on, such as people not contacted in over 3 months or overdue follow-ups.\n- actions: up to three buttons. kind \"reconnect\" (see who to get back in touch with), \"follow_ups\" (open follow-ups), \"scan\" (add cards), \"graph\" (explore the network map) or \"ask\" (with a question the user could ask about their network, e.g. \"Who from TechSummit Mumbai 2026 haven't I contacted since?\").\n- Use only the numbers and names in <stats>, quoted exactly as given. Never add, subtract or otherwise work out a new number. Don't invent people, events or trends, and don't connect two numbers unless the stats connect them (for example, don't say which event this month's new people came from).\n- Address the user as \"you\". Plain, warm language; no exclamation marks."
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "<stats>\nPeople: 32 at 13 companies, met across 5 events.\nAdded this month: 11 (last month: 10). Added in the last 3 months: 25.\nIn touch within the last 3 months: 26 of 32 (81%). Not in touch for over 3 months: 6 (19%).\nMeetings, calls and messages logged this month: 11 (last month: 11).\nNotes: 18, of which voice notes: 0.\nPeople added per month (oldest first): <month>: 0, <month>: 0, <month>: 0, <month>: 0, <month>: 0, <month>: 0, <month>: 0, <month>: 7, <month>: 0, <month>: 4, <month>: 10, <month>: 11.\nRoles: Engineering: 7, Design: 3, Finance: 3, Data: 2, HR: 2.\nIndustries: Robotics: 4, Cloud Software: 3, Data & AI: 3, Fintech: 3, Healthcare: 3.\nSeniority: Junior: 1, Mid: 8, Senior: 8, Lead/Manager: 4, Director: 6, VP: 1, C-level/Founder: 4.\nCountries: DE: 6, GB: 6, IN: 6, AE: 3, US: 3. Cities: Berlin: 6, London: 6, Mumbai: 4, Dubai: 3, Bengaluru: 2.\nBiggest companies: Northwind Robotics: 4, Bluefin Analytics: 3, Lumen Health: 3, Orbit Fintech: 3, Vertex Cloud: 3.\nBiggest events: TechSummit Mumbai 2026 (<date>): 10 people, HealthTech Expo Berlin (<date>): 8 people, FinTech Forum London (<date>): 7 people, Women in Product Meetup (<date>): 4 people, SaaS Founders Dinner (<date>): 3 people.\nTime since last contact: Last 30 days: 11, 1–3 months: 15, 3–6 months: 6, Over 6 months: 0.\nFollow-ups: 3 open, 0 overdue, 1 done this month.\n</stats>"
+        }
+      ]
+    }
+  ],
+  "response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"headline\": \"Your network has grown to 32 people across 13 companies, and you've stayed in touch with most of them recently.\", \"observations\": [\"You added 11 people this month, up from 10 last month, with 25 added in the last 3 months.\", \"26 of 32 people (81%) were in touch within the last 3 months, but 6 (19%) have not been contacted for over 3 months.\", \"Engineering is your biggest role group: 7 of 32 people.\", \"TechSummit Mumbai 2026 brought in your largest event group: 10 people.\"], \"actions\": [{\"kind\": \"reconnect\", \"label\": \"See who to reconnect with\", \"question\": null}, {\"kind\": \"follow_ups\", \"label\": \"Review 3 open follow-ups\", \"question\": null}, {\"kind\": \"ask\", \"label\": \"Ask about TechSummit contacts\", \"question\": \"Who from TechSummit Mumbai 2026 haven't I contacted since?\"}]}"
+      }
+    ],
+    "finishReason": {
+      "unified": "stop",
+      "raw": "stop"
+    },
+    "usage": {
+      "inputTokens": {
+        "total": 1752,
+        "noCache": 1752,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "outputTokens": {
+        "total": 307,
+        "text": 307,
+        "reasoning": 0
+      }
+    }
+  }
+}

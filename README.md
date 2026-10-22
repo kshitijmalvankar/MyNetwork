@@ -64,6 +64,8 @@ pnpm seed:network
 | `pnpm typecheck`, `pnpm lint` | Type and lint checks |
 | `pnpm test` | Unit tests |
 | `pnpm test:db` | Database security tests: each user sees only their own data. Changes are rolled back. |
+| `pnpm test:e2e` | End-to-end tests in a real browser, with recorded AI responses (free) |
+| `pnpm test:e2e:record` | Same, with real AI models, saving their responses for replay; costs under a cent |
 | `pnpm eval [extract\|ask\|brief\|voice\|insights]` | Live AI quality checks on fictional data; costs a few cents. Results are in [evals/results/summary.md](evals/results/summary.md). |
 | `pnpm db:push`, `pnpm db:types` | Apply migrations; regenerate database types |
 | `pnpm seed:dev [--clean]` | Create or remove test accounts on `example.com` addresses |
@@ -73,6 +75,28 @@ pnpm seed:network
 | `pnpm rotate:master-key [--apply]` | Re-wrap user keys after rotating the master key |
 | `pnpm icons` | Regenerate the favicon and app icons |
 | `pnpm secrets:check` | Block commits that contain keys; `pnpm hooks:install` runs it before every commit |
+
+## End-to-end tests
+
+`pnpm test:e2e` builds the app, starts it on port 3200 and drives it in Chromium through the main flows:
+- signing in
+- scanning and reviewing a card
+- contacts, notes and follow-ups
+- Ask, meeting briefs and drafts
+- voice notes
+- Insights and the graph
+- the public pages
+- downloading data and deleting the account
+
+The main flows run at desktop size; the ones tagged `@phone` run again at phone size.
+
+Each run creates a temporary `@example.com` account in your Supabase project and loads the fictional network into it, with its dates moved so it always looks the same age. At the end, the account is deleted through the app, and a cleanup step removes it if a run stops early. Install the browser once with `pnpm exec playwright install chromium`.
+
+AI calls aren't made. They're replayed from `fixtures/ai`, so runs are free and give the same answers every time. Search uses local word-hashing embeddings instead of a real model.
+- **When a test fails with "No recorded AI response"**, a prompt, tool or AI-dependent flow has changed. The request it couldn't match is saved in `test-results/ai-misses`.
+- **To refresh the recordings**, delete `fixtures/ai` and run `pnpm test:e2e:record`, which uses the real models (under a cent per run). Commit the new files.
+
+Add `E2E_SKIP_BUILD=1` to reuse the last build. `pnpm exec playwright show-report` opens the results, with traces of any failures.
 
 ## Project layout
 
@@ -84,7 +108,8 @@ app/              pages, server actions and API routes
 components/       UI, grouped by feature; components/ui holds the shadcn primitives
 lib/              server logic: crypto, AI, search indexing, contacts, auth, rate limits
 supabase/         SQL migrations
+e2e/              end-to-end tests (Playwright)
 evals/            AI quality checks and their results
-fixtures/         fictional cards, voice notes and network for tests and evals
+fixtures/         fictional cards, voice notes and network for tests and evals; recorded AI responses in fixtures/ai
 scripts/          setup, seeding, key rotation and other maintenance
 ```

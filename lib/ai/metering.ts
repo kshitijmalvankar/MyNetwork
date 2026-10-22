@@ -1,4 +1,5 @@
 import "server-only";
+import { aiMode } from "@/lib/ai/mode";
 import { adminClient } from "@/lib/supabase/admin";
 
 export type Feature = "scan" | "ask" | "voice_minutes" | "brief" | "index";
@@ -67,6 +68,8 @@ export async function quotaStatus(userId: string, feature: Feature): Promise<{ u
 
 /** Pauses AI for everyone once today's total spend crosses AI_GLOBAL_DAILY_USD. Fails closed. */
 export async function globalBudgetExceeded(): Promise<boolean> {
+  // Replayed responses cost nothing, so tests don't depend on today's real spend.
+  if (aiMode() === "mock") return false;
   const cap = Number(process.env.AI_GLOBAL_DAILY_USD ?? "5");
   if (!Number.isFinite(cap) || cap <= 0) return false;
   const { data, error } = await adminClient().rpc("ai_spend_today");
