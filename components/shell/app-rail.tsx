@@ -19,7 +19,7 @@ function Chip({ active, children }: { active?: boolean; children: React.ReactNod
       style={active ? { viewTransitionName: "rail-active" } : undefined}
       className={cn(
         "flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 [&_svg]:size-5",
-        active ? "bg-brand-subtle text-brand" : "group-hover/row:bg-accent group-hover/row:text-foreground",
+        active ? "bg-brand-subtle text-brand shadow-glow-sm" : "group-hover/row:bg-accent group-hover/row:text-foreground",
       )}
     >
       {children}
@@ -85,13 +85,13 @@ export function AppRail({ user }: { user: ShellUser }) {
     >
       {/* Shadows sit outside the clipped panel: one for the slim rail, one that fades in as it opens.
           Neither takes clicks; the wide one is invisible while the rail is closed but covers the page. */}
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-16 rounded-[1.75rem] shadow-lg ring-1 ring-black/[0.04] dark:ring-white/[0.07]" />
-      <div aria-hidden className="rail-wide pointer-events-none absolute inset-y-0 left-0 w-60 rounded-[1.75rem] shadow-xl ring-1 ring-black/[0.04] dark:ring-white/[0.07]" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-16 rounded-[1.75rem] shadow-float ring-1 ring-(--float-edge)" />
+      <div aria-hidden className="rail-wide pointer-events-none absolute inset-y-0 left-0 w-60 rounded-[1.75rem] shadow-float ring-1 ring-(--float-edge)" />
 
       {/* Opaque, because a named ancestor would stop a backdrop blur from seeing the page behind. */}
-      <div className="rail-panel absolute inset-y-0 left-0 flex w-60 flex-col gap-1 rounded-[1.75rem] bg-card p-3">
+      <div className="rail-panel absolute inset-y-0 left-0 flex w-60 flex-col gap-1 rounded-[1.75rem] bg-card p-3 shadow-[inset_0_1px_0_var(--float-highlight)]">
         <Link href="/home" className={cn(ROW, "mb-2")}>
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm shadow-brand/20">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-glow-sm">
             <NetworkIcon className="size-5" />
           </span>
           <span className="rail-label text-[15px] font-semibold tracking-tight">MyNetwork</span>

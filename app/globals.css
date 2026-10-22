@@ -57,6 +57,18 @@
   --animate-out: exit var(--tw-animation-duration, var(--tw-duration, 150ms)) var(--tw-ease, var(--ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 
+/*
+ * Depth and glow, defined per theme below: cards sit on a soft shadow with a
+ * hairline edge; floating things (the rail, the dock, the More panel) get a
+ * deeper shadow and a light top edge; coral actions get a soft coral glow.
+ */
+@theme inline {
+  --shadow-card: var(--card-shadow);
+  --shadow-float: inset 0 1px 0 var(--float-highlight), var(--float-shadow);
+  --shadow-glow: 0 8px 22px -8px var(--glow);
+  --shadow-glow-sm: 0 4px 14px -5px var(--glow);
+}
+
 /* Soft shadows with a warm tint, only for things that float (menus, sheets, the dock). */
 @theme {
   --shadow-2xs: 0 1px rgb(48 32 20 / 0.04);
@@ -123,6 +135,12 @@
   --sidebar-accent-foreground: oklch(0.22 0.012 50);
   --sidebar-border: oklch(0.92 0.006 70);
   --sidebar-ring: oklch(0.56 0.16 34);
+  --card-edge: rgb(48 32 20 / 0.05);
+  --card-shadow: 0 1px 2px rgb(48 32 20 / 0.05), 0 10px 28px -12px rgb(48 32 20 / 0.16);
+  --float-edge: rgb(48 32 20 / 0.06);
+  --float-highlight: rgb(255 255 255 / 0.9);
+  --float-shadow: 0 2px 6px rgb(48 32 20 / 0.06), 0 20px 50px -14px rgb(48 32 20 / 0.32);
+  --glow: color-mix(in oklch, var(--brand) 55%, transparent);
 }
 
 .dark {
@@ -162,6 +180,13 @@
   --sidebar-accent-foreground: oklch(0.96 0.004 70);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.74 0.15 38);
+  /* Shadows barely show on a dark page, so dark surfaces also get a faint lit top edge. */
+  --card-edge: rgb(255 255 255 / 0.05);
+  --card-shadow: inset 0 1px 0 rgb(255 255 255 / 0.045), 0 1px 2px rgb(0 0 0 / 0.35), 0 12px 32px -14px rgb(0 0 0 / 0.7);
+  --float-edge: rgb(255 255 255 / 0.09);
+  --float-highlight: rgb(255 255 255 / 0.08);
+  --float-shadow: 0 2px 8px rgb(0 0 0 / 0.4), 0 24px 60px -16px rgb(0 0 0 / 0.85);
+  --glow: color-mix(in oklch, var(--brand) 40%, transparent);
 }
 
 @layer base {
@@ -194,6 +219,18 @@
 
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
+}
+
+/* A soft coral and amber glow across the top of the signed-in app, so it doesn't feel flat. */
+.app-glow {
+  background:
+    radial-gradient(70rem 30rem at 18% -12rem, color-mix(in oklch, var(--brand) 18%, transparent), transparent 70%),
+    radial-gradient(50rem 26rem at 100% -8rem, color-mix(in oklch, oklch(0.86 0.1 70) 32%, transparent), transparent 70%);
+}
+.dark .app-glow {
+  background:
+    radial-gradient(70rem 30rem at 18% -12rem, color-mix(in oklch, var(--brand) 14%, transparent), transparent 70%),
+    radial-gradient(50rem 26rem at 100% -8rem, color-mix(in oklch, oklch(0.62 0.12 55) 12%, transparent), transparent 70%);
 }
 
 /*

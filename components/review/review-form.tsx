@@ -251,7 +251,7 @@ export function ReviewForm({
       </div>
 
       <div className="space-y-4">
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Person</CardTitle>
           </CardHeader>
@@ -308,7 +308,7 @@ export function ReviewForm({
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Company</CardTitle>
           </CardHeader>
@@ -333,7 +333,7 @@ export function ReviewForm({
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Contact details</CardTitle>
             <CardDescription>Encrypted before they&apos;re stored.</CardDescription>
@@ -376,7 +376,7 @@ export function ReviewForm({
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Where you met</CardTitle>
           </CardHeader>

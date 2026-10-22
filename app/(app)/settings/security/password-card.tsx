@@ -23,7 +23,7 @@ export function PasswordCard() {
   const errors = state.fieldErrors ?? {};
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle>Password</CardTitle>
         <CardDescription>Use a long, unique password. We check new passwords against known breaches.</CardDescription>

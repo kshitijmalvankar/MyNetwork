@@ -36,7 +36,7 @@ export function ProfileForm(props: { email: string; displayName: string; timezon
   const regions = useMemo(() => regionOptions(), []);
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>Signed in as {props.email}</CardDescription>

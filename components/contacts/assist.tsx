@@ -337,7 +337,7 @@ export function AssistCard(props: Props) {
   const onUsed = () => router.refresh();
 
   return (
-    <Card className="gap-4 shadow-none">
+    <Card className="gap-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <SparklesIcon className="size-4 text-brand" /> Get ready

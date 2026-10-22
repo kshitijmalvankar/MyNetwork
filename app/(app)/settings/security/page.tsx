@@ -51,7 +51,7 @@ export default async function SecurityPage() {
     <StepUpProvider hasMfa={factors.length > 0} factors={factors}>
       <TwoFactorCard factors={factors} />
       <PasswordCard />
-      <Card className="shadow-none">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ActivityIcon className="size-4 text-brand" /> Recent activity

@@ -34,7 +34,7 @@ export function RemindersCard({ contactId, reminders, today }: { contactId: stri
   const done = reminders.filter((r) => r.doneAt).slice(-3);
 
   return (
-    <Card className="gap-4 shadow-none">
+    <Card className="gap-4">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-base">
           <BellIcon className="size-4 text-brand" /> Follow-ups

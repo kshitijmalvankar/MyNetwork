@@ -129,7 +129,7 @@ export default async function HomePage() {
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="rounded-xl transition-transform active:scale-[0.98]">
-            <Card className="gap-2 py-4 shadow-none transition-colors hover:bg-muted/40">
+            <Card className="gap-2 py-4 transition-colors hover:bg-muted/40">
               <CardHeader className="flex flex-row items-center justify-between px-4">
                 <CardDescription className="text-xs sm:text-sm">{s.label}</CardDescription>
                 <s.icon className="hidden size-4 text-muted-foreground sm:block" />
@@ -143,7 +143,7 @@ export default async function HomePage() {
       </div>
 
       {suggestions.length > 0 && (
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <SparklesIcon className="size-4 text-brand" /> Suggestions
@@ -157,7 +157,7 @@ export default async function HomePage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <BellIcon className="size-4 text-brand" /> Follow-ups
@@ -173,7 +173,7 @@ export default async function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <ClockIcon className="size-4 text-brand" /> Recently added

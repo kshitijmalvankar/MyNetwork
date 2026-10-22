@@ -76,7 +76,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
       </div>
 
       {description && (
-        <Card className="shadow-none">
+        <Card>
           <CardContent className="text-sm whitespace-pre-wrap">{description}</CardContent>
         </Card>
       )}

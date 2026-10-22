@@ -39,7 +39,7 @@ export function DeleteAccountCard() {
   const confirmed = typed.trim().toLowerCase() === DELETE_CONFIRMATION;
 
   return (
-    <Card className="border-destructive/40 shadow-none">
+    <Card className="ring-destructive/25">
       <CardHeader>
         <CardTitle>Delete account</CardTitle>
         <CardDescription>

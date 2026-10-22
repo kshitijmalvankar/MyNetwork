@@ -35,7 +35,7 @@ export default async function DataPage() {
 
   return (
     <StepUpBoundary>
-      <Card className="shadow-none">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LockKeyholeIcon className="size-4 text-brand" /> What you&apos;ve stored
@@ -61,7 +61,7 @@ export default async function DataPage() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-none">
+      <Card>
         <CardHeader>
           <CardTitle>Download your contacts</CardTitle>
           <CardDescription>

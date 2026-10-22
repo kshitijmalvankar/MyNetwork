@@ -20,7 +20,7 @@ const month = (ym: string) => new Date(`${ym}-01T12:00:00Z`).toLocaleDateString(
 
 function Tile({ label, value, detail }: { label: string; value: React.ReactNode; detail?: React.ReactNode }) {
   return (
-    <Card className="gap-1 py-4 shadow-none">
+    <Card className="gap-1 py-4">
       <CardHeader className="px-4">
         <CardDescription className="text-xs sm:text-sm">{label}</CardDescription>
       </CardHeader>
@@ -36,7 +36,7 @@ function Tile({ label, value, detail }: { label: string; value: React.ReactNode;
 function Ranked({ title, description, rows }: { title: string; description: string; rows: { key: string; label: string; sub?: string; count: number; href: string }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <Card className="gap-3 shadow-none">
+    <Card className="gap-3">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

@@ -102,7 +102,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
         </div>
 
         <div className="order-1 space-y-4 lg:order-2">
-          <Card className="gap-4 shadow-none">
+          <Card className="gap-4">
             <CardHeader>
               <CardTitle className="text-base">Contact</CardTitle>
             </CardHeader>
@@ -149,7 +149,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
           />
 
           {suggestions.length > 0 && (
-            <Card className="gap-4 border-brand/30 shadow-none">
+            <Card className="gap-4 ring-brand/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <SparklesIcon className="size-4 text-brand" /> Suggested follow-ups
@@ -164,7 +164,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
           <RemindersCard contactId={contact.id} reminders={contact.reminders} today={today} />
 
           {contact.images.length > 0 && (
-            <Card className="gap-4 shadow-none">
+            <Card className="gap-4">
               <CardHeader>
                 <CardTitle className="text-base">Business card</CardTitle>
               </CardHeader>
@@ -189,7 +189,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
           )}
 
           {contact.pastPositions.length > 0 && (
-            <Card className="gap-4 shadow-none">
+            <Card className="gap-4">
               <CardHeader>
                 <CardTitle className="text-base">Previously</CardTitle>
               </CardHeader>

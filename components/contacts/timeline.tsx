@@ -136,7 +136,7 @@ export function Timeline({ contactId, items, timeZone }: { contactId: string; it
   const [, startTransition] = useTransition();
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="text-base">Notes &amp; history</CardTitle>
       </CardHeader>

@@ -59,7 +59,7 @@ export function TwoFactorCard({ factors }: { factors: Factor[] }) {
   const enabled = factors.length > 0;
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Two-factor authentication

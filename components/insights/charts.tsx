@@ -54,7 +54,7 @@ export function ChartCard({
   const [asTable, setAsTable] = useState(false);
   const empty = rows.every((r) => r.count === 0);
   return (
-    <Card className={className ? `gap-3 shadow-none ${className}` : "gap-3 shadow-none"}>
+    <Card className={className ? `gap-3 ${className}` : "gap-3"}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

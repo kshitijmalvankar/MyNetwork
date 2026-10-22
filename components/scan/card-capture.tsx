@@ -294,7 +294,7 @@ export function CardCapture({ remaining }: { remaining: number }) {
       </Tabs>
 
       {items.length > 0 && (
-        <Card className="shadow-none">
+        <Card>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">

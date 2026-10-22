@@ -56,7 +56,7 @@ export default async function UsagePage() {
 
   return (
     <>
-      <Card className="shadow-none">
+      <Card>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center gap-2">
             <GaugeIcon className="size-4 text-brand" /> This month
@@ -73,7 +73,7 @@ export default async function UsagePage() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-none">
+      <Card>
         <CardHeader>
           <CardTitle>What counts</CardTitle>
         </CardHeader>
