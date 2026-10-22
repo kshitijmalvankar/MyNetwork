@@ -232,6 +232,68 @@
   transition-delay: 170ms;
 }
 
+/*
+ * Page transitions, run by React's <ViewTransition> in app/(app)/template.tsx.
+ * The old page leaves quickly and the new one rises in just after. The rail
+ * and dock stay put above the moving content, and the active tab's highlight
+ * springs across to its new place.
+ */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-old(.page-exit) {
+  animation: 120ms var(--ease-out) both vt-fade-out;
+}
+::view-transition-new(.page-enter) {
+  animation: 280ms var(--ease-out) 40ms both vt-rise-in;
+}
+::view-transition-group(app-rail),
+::view-transition-group(app-dock) {
+  animation: none;
+  z-index: 50;
+}
+::view-transition-old(app-rail),
+::view-transition-old(app-dock) {
+  display: none;
+}
+::view-transition-new(app-rail),
+::view-transition-new(app-dock) {
+  animation: none;
+}
+::view-transition-group(rail-active),
+::view-transition-group(dock-active) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-spring);
+  z-index: 51;
+}
+::view-transition-old(rail-active),
+::view-transition-new(rail-active),
+::view-transition-old(dock-active),
+::view-transition-new(dock-active) {
+  animation-duration: 180ms;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
 
 /* With "reduce motion" on, things still fade in and out, but nothing slides, grows or springs. */
 @media (prefers-reduced-motion: reduce) {
@@ -248,6 +310,13 @@
     --tw-exit-translate-y: 0 !important;
     --tw-exit-scale: 1 !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-new(.page-enter) {
+    animation-name: vt-fade-in;
+  }
+  ::view-transition-group(rail-active),
+  ::view-transition-group(dock-active) {
+    animation-duration: 0s;
   }
   .app-rail .rail-label {
     translate: 0 0;
