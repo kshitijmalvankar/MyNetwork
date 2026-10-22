@@ -186,7 +186,7 @@ export function AskWorkspace({ threadId, initialMessages, isNew = false, threads
         </AlertDialogContent>
       </AlertDialog>
 
-      <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col gap-3 overflow-y-auto py-8 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-3 overflow-y-auto py-8 lg:flex">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-medium text-muted-foreground">Conversations</h2>
           {newChat}
@@ -194,7 +194,7 @@ export function AskWorkspace({ threadId, initialMessages, isNew = false, threads
         {history}
       </aside>
 
-      <section className="flex min-h-[calc(100dvh-3.5rem-7rem)] min-w-0 flex-1 flex-col md:min-h-[calc(100dvh-3.5rem)]">
+      <section className="flex min-h-[calc(100dvh-6.5rem)] min-w-0 flex-1 flex-col md:min-h-dvh">
         <div className="flex items-center justify-between gap-3 py-6 lg:py-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Ask</h1>
@@ -294,7 +294,7 @@ export function AskWorkspace({ threadId, initialMessages, isNew = false, threads
         </div>
 
         <form
-          className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 -mx-1 bg-gradient-to-t from-background from-70% to-transparent px-1 pt-4 pb-4 md:bottom-0"
+          className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 -mx-1 bg-gradient-to-t from-background from-70% to-transparent px-1 pt-4 pb-4 md:bottom-0"
           onSubmit={(e) => {
             e.preventDefault();
             ask(input);

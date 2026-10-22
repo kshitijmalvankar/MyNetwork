@@ -34,12 +34,17 @@ export const secondaryNav: NavItem[] = [
   { href: "/settings", label: "Settings", icon: SettingsIcon, keywords: ["account", "security", "export"] },
 ];
 
-/** Bottom tab bar on mobile; the centre slot is the Scan button. */
-export const mobileTabs = {
-  left: [primaryNav[0], primaryNav[3]],
-  right: [primaryNav[4], primaryNav[5]],
-  scan: primaryNav[1],
+const byHref = (href: string) => [...primaryNav, ...secondaryNav].find((i) => i.href === href)!;
+
+/** The phone dock: Home, Contacts, Scan in the middle, Ask, and More for everything else. */
+export const dockTabs = {
+  left: [byHref("/home"), byHref("/contacts")],
+  scan: byHref("/scan"),
+  right: [byHref("/ask")],
 };
+
+/** What the phone's More sheet lists. */
+export const moreNav: NavItem[] = ["/review", "/graph", "/events", "/insights", "/settings"].map(byHref);
 
 export function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);

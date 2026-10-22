@@ -192,6 +192,47 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/*
+ * Desktop rail: icons only, opening to show labels while the pointer is over
+ * it (`data-open`, set in app-rail.tsx), on keyboard focus, or while its
+ * account menu is open. Only clip-path and opacity change, so
+ * the page underneath never reflows. Opening waits a moment, so passing the
+ * pointer over the rail doesn't flash it open; closing is immediate.
+ */
+.app-rail .rail-panel {
+  clip-path: inset(0 calc(100% - 4rem) 0 0 round 1.75rem);
+  transition: clip-path 240ms var(--ease-out);
+}
+.app-rail .rail-wide {
+  opacity: 0;
+  transition: opacity 240ms var(--ease-out);
+}
+.app-rail .rail-label {
+  opacity: 0;
+  translate: -0.375rem 0;
+  transition:
+    opacity 120ms var(--ease-out),
+    translate 240ms var(--ease-out);
+}
+.app-rail:is([data-open], :has(:focus-visible), :has([data-state="open"])) .rail-panel {
+  clip-path: inset(0 0 0 0 round 1.75rem);
+  transition-delay: 120ms;
+}
+.app-rail:is([data-open], :has(:focus-visible), :has([data-state="open"])) .rail-wide {
+  opacity: 1;
+  transition-delay: 120ms;
+}
+.app-rail:is([data-open], :has(:focus-visible), :has([data-state="open"])) .rail-label {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 170ms;
+}
+
+
 /* With "reduce motion" on, things still fade in and out, but nothing slides, grows or springs. */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -207,5 +248,8 @@
     --tw-exit-translate-y: 0 !important;
     --tw-exit-scale: 1 !important;
     scroll-behavior: auto !important;
+  }
+  .app-rail .rail-label {
+    translate: 0 0;
   }
 }

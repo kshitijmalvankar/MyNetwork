@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SearchIcon, UserIcon } from "lucide-react";
+import { UserIcon } from "lucide-react";
 import {
   Command,
   CommandDialog,
@@ -13,13 +13,21 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Kbd } from "@/components/ui/kbd";
-import { Button } from "@/components/ui/button";
 import { primaryNav, secondaryNav } from "@/lib/nav";
 
 type ContactHit = { id: string; name: string; subtitle: string | null };
 
-export function CommandMenu() {
+const CommandMenuContext = createContext<{ open: () => void } | null>(null);
+
+/** Opens the search palette from anywhere in the app (the rail, the phone's More sheet). */
+export function useCommandMenu() {
+  const ctx = use(CommandMenuContext);
+  if (!ctx) throw new Error("useCommandMenu must be used inside <CommandMenuProvider>");
+  return ctx;
+}
+
+/** The search palette: people and pages, opened with ⌘K or any search button. */
+export function CommandMenuProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -61,16 +69,8 @@ export function CommandMenu() {
   };
 
   return (
-    <>
-      <Button
-        variant="outline"
-        className="h-8 w-full justify-start gap-2 rounded-lg bg-muted/40 text-muted-foreground shadow-none sm:w-64"
-        onClick={() => setOpen(true)}
-      >
-        <SearchIcon className="size-4" />
-        <span className="flex-1 text-left">Search people…</span>
-        <Kbd className="hidden sm:inline-flex">⌘K</Kbd>
-      </Button>
+    <CommandMenuContext value={{ open: () => setOpen(true) }}>
+      {children}
       <CommandDialog open={open} onOpenChange={setOpen} title="Search" description="Jump to a person or page">
         {/* The dialog is only the frame; the input and list need their own Command root. */}
         <Command>
@@ -104,6 +104,6 @@ export function CommandMenu() {
           </CommandList>
         </Command>
       </CommandDialog>
-    </>
+    </CommandMenuContext>
   );
 }

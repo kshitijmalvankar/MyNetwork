@@ -431,7 +431,7 @@ export function ReviewForm({
         </Card>
       </div>
 
-      <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/90 px-4 py-3 backdrop-blur-xl md:bottom-0 md:left-(--sidebar-width) md:group-data-[state=collapsed]/sidebar-wrapper:left-(--sidebar-width-icon)">
+      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 border-t bg-background/90 px-4 py-3 backdrop-blur-xl md:bottom-0 md:left-[5.5rem]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
           <div className="flex gap-1">
             <Button variant="ghost" onClick={discard} disabled={pending}>
