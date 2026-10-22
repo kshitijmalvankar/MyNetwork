@@ -24,29 +24,38 @@ export const draftRequestSchema = z.object({
 });
 export type DraftRequest = z.infer<typeof draftRequestSchema>;
 
-/** People you know at the same company or met at the same events. */
+/**
+ * People you know at the same company or met at the same events, in a stable
+ * order (colleagues by name, then the most recently met), so the same network
+ * always gives the same context and cached briefs stay valid.
+ */
 async function relatedPeople(supabase: Supabase, c: ContactDetail): Promise<RelatedPerson[]> {
   const eventIds = [...new Set(c.timeline.flatMap((t) => (t.kind === "interaction" && t.event ? [t.event.id] : [])))];
   const [{ data: colleagues }, { data: peers }] = await Promise.all([
     c.company
-      ? supabase.from("contacts").select("id, full_name, title").eq("company_id", c.company.id).neq("id", c.id).limit(8)
+      ? supabase.from("contacts").select("id, full_name, title").eq("company_id", c.company.id).neq("id", c.id).order("full_name").limit(8)
       : Promise.resolve({ data: [] as { id: string; full_name: string; title: string | null }[] }),
     eventIds.length
       ? supabase
           .from("interactions")
-          .select("events(name), contacts(id, full_name, title, companies(name))")
+          .select("occurred_at, events(name), contacts(id, full_name, title, companies(name))")
           .in("event_id", eventIds)
           .neq("contact_id", c.id)
+          .order("occurred_at", { ascending: false })
           .limit(40)
       : Promise.resolve({ data: [] as never[] }),
   ]);
+
+  type Peer = { occurred_at: string; contacts: { id: string; full_name: string; title: string | null; companies: { name: string } | null } | null };
+  const byRecencyThenName = (a: Peer, b: Peer) =>
+    b.occurred_at.localeCompare(a.occurred_at) || (a.contacts?.full_name ?? "").localeCompare(b.contacts?.full_name ?? "");
 
   const out = new Map<string, RelatedPerson>();
   for (const p of colleagues ?? []) {
     out.set(p.id, { id: p.id, name: p.full_name, title: p.title, company: c.company?.name ?? null, via: `also at ${c.company?.name}` });
   }
-  for (const row of peers ?? []) {
-    const person = row.contacts as { id: string; full_name: string; title: string | null; companies: { name: string } | null } | null;
+  for (const row of [...(peers ?? [])].sort((a, b) => byRecencyThenName(a as Peer, b as Peer))) {
+    const person = row.contacts as Peer["contacts"];
     const event = row.events as { name: string } | null;
     if (!person || !event || out.has(person.id)) continue;
     out.set(person.id, { id: person.id, name: person.full_name, title: person.title, company: person.companies?.name ?? null, via: `also met at ${event.name}` });
