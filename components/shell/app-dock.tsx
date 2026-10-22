@@ -95,7 +95,8 @@ function MoreSheet({ user, open, onOpenChange, pathname }: { user: ShellUser; op
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      {/* A floating panel like the dock, not a sheet stuck to the screen edge. */}
+      <DrawerContent className="mx-auto max-w-md bg-popover/90 pb-4 shadow-float ring-1 ring-(--float-edge) backdrop-blur-xl backdrop-saturate-150 data-[vaul-drawer-direction=bottom]:inset-x-3 data-[vaul-drawer-direction=bottom]:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] data-[vaul-drawer-direction=bottom]:rounded-[2rem]">
         <DrawerTitle className="sr-only">More</DrawerTitle>
         <DrawerDescription className="sr-only">Search, other sections and your account</DrawerDescription>
         <div className="space-y-5 overflow-y-auto px-4 pt-4">
