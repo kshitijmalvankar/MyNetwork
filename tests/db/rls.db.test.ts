@@ -140,9 +140,11 @@ describe("network tables", () => {
     scenario(async (tx, a, b) => {
       const [c] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Owned by A') returning id`;
       await tx`insert into public.interactions (user_id, contact_id, type, occurred_at) values (${a}, ${c.id}, 'met', '2026-09-01')`;
-      // B can point a row at A's contact id, but that must not touch A's contact.
+      // B can't log a meeting with A's contact, so A's contact is untouched.
       await as(tx, b);
-      await tx`insert into public.interactions (user_id, contact_id, type, occurred_at) values (${b}, ${c.id}, 'call', '2026-10-01')`;
+      expect(
+        await rejects(tx, (sp) => sp`insert into public.interactions (user_id, contact_id, type, occurred_at) values (${b}, ${c.id}, 'call', '2026-10-01')`),
+      ).toBe(true);
       await tx`reset role`;
       const [after] = await tx`select last_contacted_at from public.contacts where id = ${c.id}`;
       expect(after.last_contacted_at.toISOString().slice(0, 10)).toBe("2026-09-01");
@@ -153,14 +155,104 @@ describe("network tables", () => {
 
   it("go with their owner when the user is deleted", () =>
     scenario(async (tx, a) => {
-      const [c] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Owned by A') returning id`;
-      await tx`insert into public.interactions (user_id, contact_id, type) values (${a}, ${c.id}, 'met')`;
+      const [co] = await tx`insert into public.companies (user_id, name, normalized_name) values (${a}, 'Acme', 'acme') returning id`;
+      const [e] = await tx`insert into public.events (user_id, name) values (${a}, 'Expo') returning id`;
+      const [c] = await tx`insert into public.contacts (user_id, full_name, company_id) values (${a}, 'Owned by A', ${co.id}) returning id`;
+      await tx`insert into public.interactions (user_id, contact_id, type, event_id) values (${a}, ${c.id}, 'met', ${e.id})`;
+      await tx`insert into public.scans (user_id, front_path, contact_id) values (${a}, ${`${a}/cards/x/front`}, ${c.id})`;
       await tx`delete from auth.users where id = ${a}`;
       expect(await tx`select id from public.contacts where user_id = ${a}`).toHaveLength(0);
+      expect(await tx`select id from public.interactions where user_id = ${a}`).toHaveLength(0);
+      expect(await tx`select id from public.scans where user_id = ${a}`).toHaveLength(0);
       expect(await tx`select user_id from public.user_keys where user_id = ${a}`).toHaveLength(0);
       // The trigger that broke deletion must run as its owner, not as the role deleting the user.
       const [fn] = await tx`select prosecdef from pg_proc where proname = 'touch_last_contacted'`;
       expect(fn.prosecdef).toBe(true);
+    }));
+});
+
+describe("links between rows", () => {
+  /** A small network for one user: the rows other rows can point at. */
+  async function network(tx: postgres.TransactionSql, owner: string) {
+    const [{ id: company }] = await tx`insert into public.companies (user_id, name, normalized_name) values (${owner}, 'Acme', 'acme') returning id`;
+    const [{ id: contact }] = await tx`insert into public.contacts (user_id, full_name) values (${owner}, 'Someone') returning id`;
+    const [{ id: event }] = await tx`insert into public.events (user_id, name) values (${owner}, 'Expo') returning id`;
+    const [{ id: note }] = await tx`insert into public.notes (user_id, contact_id, body_enc) values (${owner}, ${contact}, '\\x00') returning id`;
+    const [{ id: thread }] = await tx`insert into public.chat_threads (user_id) values (${owner}) returning id`;
+    return { company, contact, event, note, thread } as Record<"company" | "contact" | "event" | "note" | "thread", string>;
+  }
+  type Network = Awaited<ReturnType<typeof network>>;
+
+  /** Every way a signed-in user can point one of their rows at `target`'s rows. */
+  const links = (me: string, own: Network, target: Network): [string, (sp: postgres.TransactionSql) => Promise<unknown>][] => [
+    ["note on a contact", (sp) => sp`insert into public.notes (user_id, contact_id, body_enc) values (${me}, ${target.contact}, '\\x00')`],
+    ["note on an event", (sp) => sp`insert into public.notes (user_id, event_id, body_enc) values (${me}, ${target.event}, '\\x00')`],
+    ["interaction", (sp) => sp`insert into public.interactions (user_id, contact_id, type) values (${me}, ${target.contact}, 'met')`],
+    ["event link", (sp) => sp`insert into public.interactions (user_id, contact_id, type, event_id) values (${me}, ${own.contact}, 'met', ${target.event})`],
+    ["reminder", (sp) => sp`insert into public.reminders (user_id, contact_id, due_at) values (${me}, ${target.contact}, now())`],
+    ["company link", (sp) => sp`update public.contacts set company_id = ${target.company} where id = ${own.contact} returning id`],
+    ["new contact at a company", (sp) => sp`insert into public.contacts (user_id, full_name, company_id) values (${me}, 'New', ${target.company})`],
+    ["card image", (sp) => sp`insert into public.card_images (user_id, contact_id, side, path) values (${me}, ${target.contact}, 'front', 'x')`],
+    ["identifier", (sp) => sp`insert into public.contact_identifiers (user_id, contact_id, kind, blind_index) values (${me}, ${target.contact}, 'email', 'x')`],
+    ["scan", (sp) => sp`insert into public.scans (user_id, front_path, contact_id) values (${me}, 'x', ${target.contact})`],
+    ["cached brief", (sp) => sp`insert into public.ai_cache (user_id, kind, contact_id, input_hash, payload_enc, model) values (${me}, 'brief', ${target.contact}, 'h', '\\x00', 'm')`],
+    ["suggestion", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id) values (${me}, 'follow_up', ${target.contact})`],
+    ["suggestion from a note", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id, note_id) values (${me}, 'follow_up', ${own.contact}, ${target.note})`],
+    ["chat message", (sp) => sp`insert into public.chat_messages (user_id, thread_id, message_id, role, parts_enc) values (${me}, ${target.thread}, 'm1', 'user', '\\x00')`],
+  ];
+
+  it("can't point at another user's contact, event, company, note or chat", () =>
+    scenario(async (tx, a, b) => {
+      const theirs = await network(tx, a);
+      const mine = await network(tx, b);
+      await as(tx, b);
+      const allowed = [];
+      for (const [label, run] of links(b, mine, theirs)) if (!(await rejects(tx, run))) allowed.push(label);
+      expect(allowed).toEqual([]);
+    }));
+
+  it("still let owners link their own rows", () =>
+    scenario(async (tx, a) => {
+      const mine = await network(tx, a);
+      await as(tx, a);
+      const refused = [];
+      for (const [label, run] of links(a, mine, mine)) if (await rejects(tx, run)) refused.push(label);
+      expect(refused).toEqual([]);
+    }));
+
+  it("can't be made by the server either", () =>
+    scenario(async (tx, a, b) => {
+      // The test connection bypasses row-level security, like the service role.
+      const theirs = await network(tx, a);
+      const mine = await network(tx, b);
+      const vector = `[${Array.from({ length: 1536 }, () => 0).join(",")}]`;
+      expect(
+        await rejects(
+          tx,
+          (sp) => sp`insert into public.knowledge_chunks (user_id, source_type, source_id, contact_id, content_enc, content_hash, embedding, embedding_model)
+                     values (${b}, 'contact', ${theirs.contact}, ${theirs.contact}, '\\x00', 'x', ${vector}::extensions.vector, 'm')`,
+        ),
+      ).toBe(true);
+      expect(
+        await rejects(tx, (sp) => sp`insert into public.contact_similarity (user_id, contact_id, similar_id, score) values (${b}, ${mine.contact}, ${theirs.contact}, 1)`),
+      ).toBe(true);
+    }));
+
+  it("keep their owner when what they point at is deleted", () =>
+    scenario(async (tx, a) => {
+      const mine = await network(tx, a);
+      await as(tx, a);
+      await tx`update public.contacts set company_id = ${mine.company} where id = ${mine.contact}`;
+      const [i] = await tx`insert into public.interactions (user_id, contact_id, type, event_id) values (${a}, ${mine.contact}, 'met', ${mine.event}) returning id`;
+      const [s] = await tx`insert into public.scans (user_id, front_path, contact_id) values (${a}, 'x', ${mine.contact}) returning id`;
+
+      await tx`delete from public.events where id = ${mine.event}`;
+      expect(await tx`select user_id, event_id from public.interactions where id = ${i.id}`).toEqual([{ user_id: a, event_id: null }]);
+      await tx`delete from public.companies where id = ${mine.company}`;
+      expect(await tx`select user_id, company_id from public.contacts where id = ${mine.contact}`).toEqual([{ user_id: a, company_id: null }]);
+      await tx`delete from public.contacts where id = ${mine.contact}`;
+      expect(await tx`select user_id, contact_id from public.scans where id = ${s.id}`).toEqual([{ user_id: a, contact_id: null }]);
+      expect(await tx`select id from public.notes where id = ${mine.note}`).toHaveLength(0);
     }));
 });
 

@@ -19,10 +19,10 @@ export type Database = {
                   Relationships: [
                     {
       foreignKeyName: "ai_cache_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"ai_suggestions": {
@@ -39,16 +39,16 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "ai_suggestions_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "ai_suggestions_note_id_fkey"
-      columns: ["note_id"]
+      columns: ["note_id","user_id"]
 isOneToOne: false
       referencedRelation: "notes"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"ai_usage": {
@@ -93,10 +93,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "card_images_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"chat_messages": {
@@ -113,10 +113,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "chat_messages_thread_id_fkey"
-      columns: ["thread_id"]
+      columns: ["thread_id","user_id"]
 isOneToOne: false
       referencedRelation: "chat_threads"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"chat_threads": {
@@ -161,10 +161,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "contact_identifiers_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"contact_similarity": {
@@ -181,16 +181,16 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "contact_similarity_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "contact_similarity_similar_id_fkey"
-      columns: ["similar_id"]
+      columns: ["similar_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"contacts": {
@@ -207,10 +207,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "contacts_company_id_fkey"
-      columns: ["company_id"]
+      columns: ["company_id","user_id"]
 isOneToOne: false
       referencedRelation: "companies"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"entitlements": {
@@ -275,16 +275,16 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "interactions_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "interactions_event_id_fkey"
-      columns: ["event_id"]
+      columns: ["event_id","user_id"]
 isOneToOne: false
       referencedRelation: "events"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"knowledge_chunks": {
@@ -301,22 +301,22 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "knowledge_chunks_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "knowledge_chunks_event_id_fkey"
-      columns: ["event_id"]
+      columns: ["event_id","user_id"]
 isOneToOne: false
       referencedRelation: "events"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "knowledge_chunks_note_id_fkey"
-      columns: ["note_id"]
+      columns: ["note_id","user_id"]
 isOneToOne: false
       referencedRelation: "notes"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"notes": {
@@ -333,16 +333,16 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "notes_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     },{
       foreignKeyName: "notes_event_id_fkey"
-      columns: ["event_id"]
+      columns: ["event_id","user_id"]
 isOneToOne: false
       referencedRelation: "events"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"plans": {
@@ -387,10 +387,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "reminders_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"scans": {
@@ -407,10 +407,10 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "scans_contact_id_fkey"
-      columns: ["contact_id"]
+      columns: ["contact_id","user_id"]
 isOneToOne: false
       referencedRelation: "contacts"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","user_id"]
     }
                   ]
                 },"usage_counters": {

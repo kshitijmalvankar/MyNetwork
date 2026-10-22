@@ -77,10 +77,11 @@ Only the small wrapped keys change; encrypted contacts, notes and files are not 
 ## Access control
 
 - **Row-level security** is enabled on every table. Policies allow users only their own rows.
+- **Links stay within one account.** Foreign keys match on the owner as well as the id, so a note, interaction, reminder or any other row can only point at a contact, event, company, note or chat of the same user. This holds for the service role too, so following a link never crosses accounts.
 - **Two-step sign-in in the database.** When a user has an authenticator, restrictive policies (`mfa_satisfied()`) also require an `aal2` session. A session that skipped the second step can't read data even through the database API directly.
 - **Server-only tables and functions.** The browser has no access at all to `user_keys`. Users can read their own `audit_log`, `ai_usage`, `entitlements` and `usage_counters` rows, but only the server can write them. Quota, reconnect and similarity functions are revoked from client roles.
 - **The service-role client** (`lib/supabase/admin.ts`) is used only for keys, the audit log, metering, scheduled jobs, background card reading and indexing (always filtered by the owner's id), and account deletion.
-- **Tests:** `pnpm test:db` checks that users can't see or change each other's rows and that client roles can't reach server-only tables and functions. It runs against the linked database inside transactions that are rolled back.
+- **Tests:** `pnpm test:db` checks that users can't see, change or link to each other's rows and that client roles can't reach server-only tables and functions. It runs against the linked database inside transactions that are rolled back.
 
 ## Authentication
 
