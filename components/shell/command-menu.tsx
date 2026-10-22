@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchIcon, UserIcon } from "lucide-react";
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -71,34 +72,37 @@ export function CommandMenu() {
         <Kbd className="hidden sm:inline-flex">⌘K</Kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen} title="Search" description="Jump to a person or page">
-        <CommandInput placeholder="Search people, companies, pages…" value={query} onValueChange={setQuery} />
-        <CommandList>
-          <CommandEmpty>No results.</CommandEmpty>
-          {query.trim().length >= 2 && hits.length > 0 && (
-            <CommandGroup heading="People">
-              {hits.map((c) => (
-                <CommandItem key={c.id} value={`person ${c.name} ${c.subtitle ?? ""}`} onSelect={() => go(`/contacts/${c.id}`)}>
-                  <UserIcon />
-                  <span>{c.name}</span>
-                  {c.subtitle && <span className="ml-2 truncate text-muted-foreground">{c.subtitle}</span>}
+        {/* The dialog is only the frame; the input and list need their own Command root. */}
+        <Command>
+          <CommandInput placeholder="Search people, companies, pages…" value={query} onValueChange={setQuery} />
+          <CommandList>
+            <CommandEmpty>No results.</CommandEmpty>
+            {query.trim().length >= 2 && hits.length > 0 && (
+              <CommandGroup heading="People">
+                {hits.map((c) => (
+                  <CommandItem key={c.id} value={`person ${c.name} ${c.subtitle ?? ""}`} onSelect={() => go(`/contacts/${c.id}`)}>
+                    <UserIcon />
+                    <span>{c.name}</span>
+                    {c.subtitle && <span className="ml-2 truncate text-muted-foreground">{c.subtitle}</span>}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            <CommandSeparator />
+            <CommandGroup heading="Go to">
+              {[...primaryNav, ...secondaryNav].map((item) => (
+                <CommandItem
+                  key={item.href}
+                  value={`${item.label} ${(item.keywords ?? []).join(" ")}`}
+                  onSelect={() => go(item.href)}
+                >
+                  <item.icon />
+                  {item.label}
                 </CommandItem>
               ))}
             </CommandGroup>
-          )}
-          <CommandSeparator />
-          <CommandGroup heading="Go to">
-            {[...primaryNav, ...secondaryNav].map((item) => (
-              <CommandItem
-                key={item.href}
-                value={`${item.label} ${(item.keywords ?? []).join(" ")}`}
-                onSelect={() => go(item.href)}
-              >
-                <item.icon />
-                {item.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
+          </CommandList>
+        </Command>
       </CommandDialog>
     </>
   );
