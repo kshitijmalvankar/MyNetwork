@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyNetwork
 
-## Getting Started
+A private place for everyone you meet at networking events. Scan business cards on your phone or desktop, keep notes and voice notes about people, and ask your network questions in plain English: "Who did I meet from Acme?" "Which engineers mentioned hiring?"
 
-First, run the development server:
+## Features
+
+- **Card scanning:** one card at a time or in bulk, double-sided, in any language. An AI model reads each card, QR codes are decoded in the browser, and you review the result before it's saved.
+- **Contacts:** grouped by company, role, industry, seniority and location. Each contact has a timeline of meetings, notes, voice notes and follow-ups.
+- **Ask:** a chat that searches your contacts and notes and links to the people in its answers. Chats are saved, encrypted.
+- **Meeting briefs and follow-up drafts** for any contact. Drafts are never sent for you.
+- **Voice notes,** transcribed and summarized, with suggested follow-ups.
+- **Graph:** a map of your network by company, event and similar background.
+- **Insights:** charts of who you know and how you're keeping in touch, with a short written summary.
+- **Security:**
+  - Contact details, notes, recordings, photos and chats are encrypted with a key per user.
+  - Optional two-step sign-in.
+  - Your password is asked for again before sensitive actions.
+  - Full CSV export, and account deletion that removes everything.
+- **Installable** on phones and desktops as an app.
+
+See [SECURITY.md](SECURITY.md) for how data is protected, and [DEPLOY.md](DEPLOY.md) to put it online.
+
+## Stack
+
+| Part | Choice |
+|---|---|
+| App | Next.js 16 (App Router), React 19, TypeScript |
+| Design | Tailwind CSS v4, shadcn/ui, Recharts, force-graph |
+| Database, sign-in, files | Supabase: Postgres with pgvector, Auth, Storage |
+| AI | AI SDK with OpenRouter, limited to zero-data-retention providers |
+| Rate limits | Upstash Redis, or in memory when developing |
+
+## Running it locally
+
+You need Node 24 and pnpm 10, plus a Supabase project, an OpenRouter API key, and a Postgres connection for migrations.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm setup:env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`pnpm setup:env` creates `.env.local` and generates the encryption keys and cron secret. Fill in the Supabase and OpenRouter values; `.env.example` explains each one. Then set up the database and start the app:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm db:push
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app runs at http://localhost:3000. Configure Supabase's auth settings once, as described in [docs/supabase-setup.md](docs/supabase-setup.md).
 
-## Learn More
+To try it with sample data, create the test account defined by `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` in `.env.local`, then load a fictional network of 32 people:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm seed:dev
+pnpm seed:network
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Start the development server |
+| `pnpm build`, `pnpm start` | Production build and server |
+| `pnpm typecheck`, `pnpm lint` | Type and lint checks |
+| `pnpm test` | Unit tests |
+| `pnpm test:db` | Database security tests: each user sees only their own data. Changes are rolled back. |
+| `pnpm eval [extract\|ask\|brief\|voice\|insights]` | Live AI quality checks on fictional data; costs a few cents. Results are in [evals/results/summary.md](evals/results/summary.md). |
+| `pnpm db:push`, `pnpm db:types` | Apply migrations; regenerate database types |
+| `pnpm seed:dev [--clean]` | Create or remove test accounts on `example.com` addresses |
+| `pnpm seed:network` | Load the fictional network into the test account |
+| `pnpm cron <job>` | Run a scheduled job against the local server |
+| `pnpm reindex` | Rebuild search after changing the embedding model |
+| `pnpm rotate:master-key [--apply]` | Re-wrap user keys after rotating the master key |
+| `pnpm icons` | Regenerate the favicon and app icons |
+| `pnpm secrets:check` | Block commits that contain keys; `pnpm hooks:install` runs it before every commit |
 
-## Deploy on Vercel
+## Project layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/              pages, server actions and API routes
+  (app)/          signed-in pages: home, scan, review, contacts, ask, graph, events, insights, settings
+  (auth)/         sign-in, sign-up, two-step and password reset
+  (public)/       privacy policy and terms
+components/       UI, grouped by feature; components/ui holds the shadcn primitives
+lib/              server logic: crypto, AI, search indexing, contacts, auth, rate limits
+supabase/         SQL migrations
+evals/            AI quality checks and their results
+fixtures/         fictional cards, voice notes and network for tests and evals
+scripts/          setup, seeding, key rotation and other maintenance
+```
