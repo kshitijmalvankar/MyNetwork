@@ -52,6 +52,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Enter and exit animations (dialogs, menus, sheets) default to the smooth ease-out below. */
+  --animate-in: enter var(--tw-animation-duration, var(--tw-duration, 200ms)) var(--tw-ease, var(--ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-out: exit var(--tw-animation-duration, var(--tw-duration, 150ms)) var(--tw-ease, var(--ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
 }
 
 /* Soft shadows with a warm tint, only for things that float (menus, sheets, the dock). */
@@ -63,6 +66,18 @@
   --shadow-lg: 0 4px 8px rgb(48 32 20 / 0.04), 0 16px 36px rgb(48 32 20 / 0.08);
   --shadow-xl: 0 8px 16px rgb(48 32 20 / 0.05), 0 28px 56px rgb(48 32 20 / 0.12);
   --shadow-2xl: 0 12px 24px rgb(48 32 20 / 0.06), 0 40px 80px rgb(48 32 20 / 0.16);
+}
+
+/*
+ * Motion: quick ease-outs that start fast and settle softly, and a gentle
+ * spring (about 3% overshoot) for things that snap into place.
+ */
+@theme {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: linear(0, 0.033, 0.115, 0.224, 0.344, 0.463, 0.576, 0.677, 0.763, 0.835, 0.893, 0.938, 0.971, 0.995, 1.011, 1.021, 1.026, 1.028, 1.028, 1.026, 1.023, 1.019, 1.016, 1.013, 1.01, 1.007, 1.005, 1.003, 1);
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: var(--ease-out);
 }
 
 /*
@@ -175,4 +190,22 @@
 
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* With "reduce motion" on, things still fade in and out, but nothing slides, grows or springs. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ease-spring: var(--ease-out);
+  }
+  *,
+  ::before,
+  ::after {
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-exit-scale: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
