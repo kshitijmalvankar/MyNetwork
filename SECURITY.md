@@ -16,7 +16,7 @@ Please report security problems privately through GitHub's **Security → Report
 | Someone browsing the Supabase dashboard or storage bucket | They see the same ciphertext as above. |
 | One user reading or changing another user's data | Row-level security on every table, owner-only storage policies, and server code that uses the signed-in user's own database session. |
 | Ciphertext copied between rows or users | Each value is bound to its user, table, column and row id (AES-GCM additional data), so a moved value fails to decrypt. |
-| Password guessing, credential stuffing and bots | Captcha (Turnstile), per-account and per-network rate limits, a 12-character minimum, breached-password checks, and optional two-step sign-in. |
+| Password guessing, credential stuffing and bots | Captcha (Turnstile, checked by the app on the server), per-account and per-network rate limits, a 12-character minimum, breached-password checks, and optional two-step sign-in. |
 | A stolen but unlocked session making high-impact changes | Downloading data, deleting the account, and changing the password or authenticators all require the password (and authenticator code, if enrolled) within the last 5 minutes. |
 | Cross-site scripting, clickjacking and framing | Per-request nonce Content Security Policy, `frame-ancestors 'none'`, and the other headers listed below. |
 
@@ -27,6 +27,11 @@ Please report security problems privately through GitHub's **Security → Report
 - **Plaintext columns.** Names, native-script names, job titles, companies, websites, cities, countries, role/seniority/industry tags, event names and dates are stored without field encryption, so search, filters and the graph work. They're protected only by Supabase's disk encryption and row-level security.
 - **Embeddings.** Search vectors are computed from contact, note and event text and are not encrypted with the user's key. They reveal something about the topics of the text, though not the text itself.
 - **Metadata.** Row counts, timestamps and which rows relate to which.
+- **Direct calls to Supabase's sign-in service.** Anyone can call Supabase's auth API with the publishable key every browser downloads, skipping the app. Those calls aren't captcha-checked, because a Supabase project holds one captcha secret and local development and tests need Cloudflare's test keys. They're limited by:
+  - Supabase's per-address rate limits
+  - the password rules
+  - email confirmation: an unconfirmed account can't sign in, so it can't use AI features or cost anything
+- **Invite lists.** An invite list checked only in the app could be skipped the same way. It would need a check in the database as well.
 - **AI providers.** Requests are processed in plaintext by the model provider. We rely on OpenRouter's zero-data-retention routing and the providers' commitments not to store or train on them.
 
 ## Encryption
@@ -85,7 +90,10 @@ Only the small wrapped keys change; encrypted contacts, notes and files are not 
 
 ## Authentication
 
-- **Server-side sign-in.** Sign-up, sign-in and password reset run as server actions. Each one is rate-limited, audited and protected by captcha; Supabase also enforces the captcha on its own auth API.
+- **Server-side sign-in.** Sign-up, sign-in, password reset and confirming it's you run as server actions. Each one is rate-limited, audited and checks the Turnstile token with Cloudflare first.
+  - **Secrets per environment.** Each environment uses its own secret: Cloudflare's test secret locally and in tests, and the real one on Vercel.
+  - **Fails closed.** In production the app refuses the test secret, so a missing real key blocks sign-ins instead of letting bots through. The check also fails closed when Cloudflare can't be reached.
+  - **Supabase's own captcha check is off.** See *Not protected against* above.
 - **Passwords** need at least 12 characters. New passwords are checked against Have I Been Pwned using only the first 5 characters of the password's SHA-1 hash.
 - **Two-step sign-in** (TOTP) is optional. Once enrolled, it's enforced in `proxy.ts`, in `requireUser()` and in the database. Supabase doesn't offer recovery codes, so the app encourages adding a second authenticator. If someone is locked out, verify who they are another way first. Then remove their factor in the Supabase dashboard (**Authentication → Users → user → Multi-factor**).
 - **Confirming it's you.** This uses a signed, `httpOnly`, `SameSite=Strict` cookie that expires after 5 minutes. The password is checked on a separate client, so the current session isn't changed.

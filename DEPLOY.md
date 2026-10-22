@@ -32,7 +32,8 @@ Work through [docs/supabase-setup.md](docs/supabase-setup.md), with these produc
 - **Confirm email:** turn it **on** once SMTP works.
 - **URLs:** set the Site URL to `https://<your domain>` and add `https://<your domain>/**` to the redirect URLs.
 - **Email templates:** use the confirmation and reset links described in that document.
-- **Captcha:** turn it on with your **real** Turnstile secret (step 6).
+- **Captcha:** leave it **off**. The app checks Turnstile tokens itself, with the secret you add to Vercel in step 7.
+- **Rate limits:** keep the defaults (the setup document explains why).
 - **Backups:** check how long your plan keeps database backups. The privacy policy promises that deleted accounts disappear from backups **within 30 days**, so the retention must not be longer. If you change it, update the policy too.
 - **Test data:** remove the test accounts with `pnpm seed:dev --clean`. It only deletes accounts on `example.com/org/net` addresses.
 
@@ -48,7 +49,10 @@ Create a Redis database and copy its REST URL and token. Without them, rate limi
 
 ## 6. Turnstile
 
-Create a widget for your domain (Managed mode). Put the **site key** in Vercel as `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the **secret** in both Vercel (`TURNSTILE_SECRET_KEY`) and Supabase's captcha setting.
+Create a widget in **Managed** mode, with your Vercel address and your domain as hostnames.
+- Put the **site key** in Vercel as `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the **secret** as `TURNSTILE_SECRET_KEY`. Supabase doesn't need either.
+- On Vercel's production environment, the app refuses Cloudflare's test secret. If the real one is missing, sign-ins fail with "The security check failed" rather than letting bots through.
+- Keep the test keys in `.env.local`, so local sign-in and the end-to-end tests keep working.
 
 ## 7. Vercel
 

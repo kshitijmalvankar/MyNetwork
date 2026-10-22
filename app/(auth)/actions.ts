@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import type { AuthError } from "@supabase/supabase-js";
 import { audit } from "@/lib/audit";
+import { captchaMessage, verifyCaptcha } from "@/lib/auth/captcha";
 import { pwnedCount } from "@/lib/auth/pwned";
 import { safeNext } from "@/lib/auth/routes";
 import {
@@ -27,8 +28,6 @@ const BREACHED =
 
 function authMessage(error: AuthError, fallback: string): string {
   switch (error.code) {
-    case "captcha_failed":
-      return "The security check failed. Please try again.";
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
       return TOO_MANY.message!;
@@ -45,8 +44,10 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   if (!parsed.success) return { fieldErrors: toFieldErrors(parsed.error), values };
   const { displayName, email, password, captchaToken } = parsed.data;
 
-  const { ipHash } = await getRequestInfo();
+  const { ip, ipHash } = await getRequestInfo();
   if (!(await rateLimit("signup", ipHash)).success) return { ...TOO_MANY, values };
+  const captcha = await verifyCaptcha(captchaToken, ip);
+  if (captcha !== "ok") return { message: captchaMessage(captcha), values };
 
   if ((await pwnedCount(password)) > 0) return { fieldErrors: { password: [BREACHED] }, values };
 
@@ -57,7 +58,6 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
     options: {
       emailRedirectTo: `${publicEnv.siteUrl}/auth/confirm?next=/home`,
       data: displayName ? { display_name: displayName } : undefined,
-      captchaToken: captchaToken || undefined,
     },
   });
   if (error) {
@@ -89,19 +89,17 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   if (!parsed.success) return { fieldErrors: toFieldErrors(parsed.error), values };
   const { email, password, captchaToken, next } = parsed.data;
 
-  const { ipHash } = await getRequestInfo();
+  const { ip, ipHash } = await getRequestInfo();
   const [perAccount, perIp] = await Promise.all([
     rateLimit("login", `${ipHash}:${hashForRateLimit(email)}`),
     rateLimit("loginIp", ipHash),
   ]);
   if (!perAccount.success || !perIp.success) return { ...TOO_MANY, values };
+  const captcha = await verifyCaptcha(captchaToken, ip);
+  if (captcha !== "ok") return { message: captchaMessage(captcha), values };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-    options: { captchaToken: captchaToken || undefined },
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     await audit({ userId: null, action: "auth.login_failed", metadata: { reason: error.code ?? "unknown" } });
@@ -128,19 +126,19 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
   if (!parsed.success) return { fieldErrors: toFieldErrors(parsed.error), values };
   const { email, captchaToken } = parsed.data;
 
-  const { ipHash } = await getRequestInfo();
+  const { ip, ipHash } = await getRequestInfo();
   const [perEmail, perIp] = await Promise.all([
     rateLimit("passwordReset", hashForRateLimit(email)),
     rateLimit("passwordReset", ipHash),
   ]);
   if (!perEmail.success || !perIp.success) return { ...TOO_MANY, values };
+  const captcha = await verifyCaptcha(captchaToken, ip);
+  if (captcha !== "ok") return { message: captchaMessage(captcha), values };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${publicEnv.siteUrl}/auth/confirm?next=/reset-password`,
-    captchaToken: captchaToken || undefined,
   });
-  if (error?.code === "captcha_failed") return { message: authMessage(error, ""), values };
 
   await audit({ userId: null, action: "auth.password_reset_requested" });
   // Same answer whether or not the account exists.

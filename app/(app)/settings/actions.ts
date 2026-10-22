@@ -7,12 +7,14 @@ import { z } from "zod";
 import { DELETE_CONFIRMATION } from "@/lib/account/confirm";
 import { deleteAccountData } from "@/lib/account/delete";
 import { audit } from "@/lib/audit";
+import { captchaMessage, verifyCaptcha } from "@/lib/auth/captcha";
 import { requireUser } from "@/lib/auth/dal";
 import { pwnedCount } from "@/lib/auth/pwned";
 import { captchaSchema, newPasswordSchema, toFieldErrors, totpCodeSchema, type FormState } from "@/lib/auth/schemas";
 import { clearStepUp, hasRecentStepUp, markSteppedUp } from "@/lib/auth/step-up";
 import { publicEnv } from "@/lib/env";
 import { rateLimit } from "@/lib/ratelimit";
+import { getRequestInfo } from "@/lib/request";
 import { createClient } from "@/lib/supabase/server";
 
 const TOO_MANY: FormState = { message: "Too many attempts. Please wait a few minutes and try again." };
@@ -62,17 +64,15 @@ export async function stepUp(_prev: FormState, formData: FormData): Promise<Form
   const password = String(formData.get("password") ?? "");
   const captchaToken = captchaSchema.parse(formData.get("captchaToken") ?? "");
   if (!password) return { fieldErrors: { password: ["Enter your password"] } };
+  const captcha = await verifyCaptcha(captchaToken, (await getRequestInfo()).ip);
+  if (captcha !== "ok") return { message: captchaMessage(captcha) };
 
   // Check the password on a throwaway client so the user's current session
   // (and its second-factor level) is left untouched.
   const probe = createStatelessClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
-  const { data, error } = await probe.auth.signInWithPassword({
-    email: user.email,
-    password,
-    options: { captchaToken: captchaToken || undefined },
-  });
+  const { data, error } = await probe.auth.signInWithPassword({ email: user.email, password });
   if (error || data.user?.id !== user.id) {
     await audit({ userId: user.id, action: "auth.login_failed", metadata: { reason: "step_up" } });
     return { fieldErrors: { password: ["That password isn't right."] } };

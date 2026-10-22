@@ -28,10 +28,14 @@ Supabase's built-in email only sends to members of your Supabase organization, a
 - set the sender to an address on a domain you've verified
 
 ## Authentication → Attack Protection
-- **Enable Captcha protection:** on, provider **Turnstile**
-- **Secret:** the value of `TURNSTILE_SECRET_KEY`. Use the test secret locally and your real Cloudflare secret in production.
+- **Enable Captcha protection:** **off**.
 
-Captcha is enforced by Supabase itself, so it also protects the public auth API, not just the app's forms. The app forwards the widget token on sign-up, sign-in and password reset.
+The app checks the Turnstile token itself, on the server, with the secret for its environment: Cloudflare's test secret locally and in the end-to-end tests, and the real one on Vercel. A Supabase project holds only one captcha secret, so if Supabase did the check, either local sign-in or production would break. Tokens can only be checked once, so turning Supabase's check on as well would make every sign-in fail.
+
+## Authentication → Rate Limits
+Keep the defaults, including 30 sign-ups and sign-ins per 5 minutes per IP address, and 30 emails an hour once custom SMTP is set up.
+
+Requests that go through the app reach Supabase from Vercel's servers, so these per-address limits are shared by everyone using the app. Setting them much lower would turn away real users. They mainly limit people who call Supabase's auth API directly, which skips the app's captcha.
 
 ## Authentication → Multi-Factor
 - **TOTP (App Authenticator):** enabled (the default)
