@@ -21,7 +21,8 @@
     "cron": "node scripts/cron.mjs",
     "dev:upload-fixtures": "node scripts/upload-fixtures.mjs",
     "seed:network": "tsx --conditions=react-server --env-file=.env.local scripts/seed-network.ts",
-    "reindex": "tsx --conditions=react-server --env-file=.env.local scripts/reindex.ts"
+    "reindex": "tsx --conditions=react-server --env-file=.env.local scripts/reindex.ts",
+    "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "4.0.152",
