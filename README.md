@@ -74,7 +74,8 @@ pnpm seed:network
 | `pnpm reindex` | Rebuild search after changing the embedding model |
 | `pnpm rotate:master-key [--apply]` | Re-wrap user keys after rotating the master key |
 | `pnpm icons` | Regenerate the favicon and app icons |
-| `pnpm secrets:check` | Block commits that contain keys; `pnpm hooks:install` runs it before every commit |
+| `pnpm secrets:check` | Block commits that contain keys |
+| `pnpm hooks:install` | Install git hooks on this machine: `secrets:check` before every commit, and the unit and end-to-end tests before every push |
 
 ## End-to-end tests
 
