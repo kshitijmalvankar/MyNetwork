@@ -57,7 +57,7 @@ export function AppDock({ user }: { user: ShellUser }) {
       <nav aria-label="Primary" className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
         <div
           style={{ viewTransitionName: "app-dock" }}
-          className="pointer-events-auto mx-auto flex h-16 max-w-md items-center rounded-full bg-card/80 px-1.5 shadow-float ring-1 ring-(--float-edge) backdrop-blur-xl backdrop-saturate-150 dark:bg-card/75"
+          className="pointer-events-auto mx-auto flex h-16 max-w-md items-center rounded-full bg-card/80 px-1.5 shadow-float backdrop-blur-xl backdrop-saturate-150 dark:bg-card/75"
         >
           {dockTabs.left.map((item) => (
             <Tab key={item.href} item={item} pathname={pathname} />
@@ -96,7 +96,7 @@ function MoreSheet({ user, open, onOpenChange, pathname }: { user: ShellUser; op
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       {/* A floating panel like the dock, not a sheet stuck to the screen edge. */}
-      <DrawerContent className="mx-auto max-w-md bg-popover/90 pb-4 shadow-float ring-1 ring-(--float-edge) backdrop-blur-xl backdrop-saturate-150 data-[vaul-drawer-direction=bottom]:inset-x-3 data-[vaul-drawer-direction=bottom]:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] data-[vaul-drawer-direction=bottom]:rounded-[2rem]">
+      <DrawerContent className="mx-auto max-w-md bg-popover/90 pb-4 shadow-float backdrop-blur-xl backdrop-saturate-150 data-[vaul-drawer-direction=bottom]:inset-x-3 data-[vaul-drawer-direction=bottom]:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] data-[vaul-drawer-direction=bottom]:rounded-[2rem]">
         <DrawerTitle className="sr-only">More</DrawerTitle>
         <DrawerDescription className="sr-only">Search, other sections and your account</DrawerDescription>
         <div className="space-y-5 overflow-y-auto px-4 pt-4">

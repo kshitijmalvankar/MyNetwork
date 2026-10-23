@@ -16,7 +16,8 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <Empty className={cn("border bg-card/40 py-16", className)}>
+    // A soft tinted well rather than a dashed outline.
+    <Empty className={cn("border-0 bg-muted/50 py-16 dark:bg-muted/30", className)}>
       <EmptyHeader>
         <EmptyMedia className="size-12 rounded-2xl bg-brand-subtle text-brand [&_svg]:size-6">
           <Icon />

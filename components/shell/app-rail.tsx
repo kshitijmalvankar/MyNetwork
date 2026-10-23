@@ -85,8 +85,8 @@ export function AppRail({ user }: { user: ShellUser }) {
     >
       {/* Shadows sit outside the clipped panel: one for the slim rail, one that fades in as it opens.
           Neither takes clicks; the wide one is invisible while the rail is closed but covers the page. */}
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-16 rounded-[1.75rem] shadow-float ring-1 ring-(--float-edge)" />
-      <div aria-hidden className="rail-wide pointer-events-none absolute inset-y-0 left-0 w-60 rounded-[1.75rem] shadow-float ring-1 ring-(--float-edge)" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-16 rounded-[1.75rem] shadow-float" />
+      <div aria-hidden className="rail-wide pointer-events-none absolute inset-y-0 left-0 w-60 rounded-[1.75rem] shadow-float" />
 
       {/* Opaque, because a named ancestor would stop a backdrop blur from seeing the page behind. */}
       <div className="rail-panel absolute inset-y-0 left-0 flex w-60 flex-col gap-1 rounded-[1.75rem] bg-card p-3 shadow-[inset_0_1px_0_var(--float-highlight)]">

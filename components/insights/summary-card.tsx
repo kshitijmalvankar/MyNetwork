@@ -62,7 +62,7 @@ export function SummaryCard() {
   const summary = data?.summary;
 
   return (
-    <Card className="gap-4 ring-brand/20">
+    <Card className="gap-4">
       <CardHeader className="flex flex-row flex-wrap items-center gap-2">
         <CardTitle className="flex flex-1 items-center gap-2 text-base">
           <SparklesIcon className="size-4 text-brand" /> This week

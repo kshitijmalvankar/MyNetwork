@@ -58,12 +58,14 @@
 }
 
 /*
- * Depth and glow, defined per theme below: cards sit on a soft shadow with a
- * hairline edge; floating things (the rail, the dock, the More panel) get a
- * deeper shadow and a light top edge; coral actions get a soft coral glow.
+ * Depth and glow, defined per theme below. Nothing is outlined: cards float on
+ * layered shadows (lifting further when they're links), floating things (the
+ * rail, the dock, the More panel) get a deeper shadow and a light top edge, and
+ * coral actions get a soft coral glow.
  */
 @theme inline {
   --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
   --shadow-float: inset 0 1px 0 var(--float-highlight), var(--float-shadow);
   --shadow-glow: 0 8px 22px -8px var(--glow);
   --shadow-glow-sm: 0 4px 14px -5px var(--glow);
@@ -135,9 +137,9 @@
   --sidebar-accent-foreground: oklch(0.22 0.012 50);
   --sidebar-border: oklch(0.92 0.006 70);
   --sidebar-ring: oklch(0.56 0.16 34);
-  --card-edge: rgb(48 32 20 / 0.05);
-  --card-shadow: 0 1px 2px rgb(48 32 20 / 0.05), 0 10px 28px -12px rgb(48 32 20 / 0.16);
-  --float-edge: rgb(48 32 20 / 0.06);
+  /* Layered, so cards look lifted off the page rather than outlined: a tight contact shadow and a wide soft one. */
+  --card-shadow: 0 1px 2px rgb(48 32 20 / 0.04), 0 4px 10px -2px rgb(48 32 20 / 0.05), 0 18px 40px -14px rgb(48 32 20 / 0.18);
+  --card-shadow-hover: 0 2px 4px rgb(48 32 20 / 0.05), 0 8px 18px -4px rgb(48 32 20 / 0.08), 0 26px 52px -16px rgb(48 32 20 / 0.24);
   --float-highlight: rgb(255 255 255 / 0.9);
   --float-shadow: 0 2px 6px rgb(48 32 20 / 0.06), 0 20px 50px -14px rgb(48 32 20 / 0.32);
   --glow: color-mix(in oklch, var(--brand) 55%, transparent);
@@ -180,10 +182,9 @@
   --sidebar-accent-foreground: oklch(0.96 0.004 70);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.74 0.15 38);
-  /* Shadows barely show on a dark page, so dark surfaces also get a faint lit top edge. */
-  --card-edge: rgb(255 255 255 / 0.05);
-  --card-shadow: inset 0 1px 0 rgb(255 255 255 / 0.045), 0 1px 2px rgb(0 0 0 / 0.35), 0 12px 32px -14px rgb(0 0 0 / 0.7);
-  --float-edge: rgb(255 255 255 / 0.09);
+  /* Shadows barely show on a dark page, so dark surfaces also catch a faint light along their top. */
+  --card-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 24px -6px rgb(0 0 0 / 0.4), 0 28px 56px -16px rgb(0 0 0 / 0.6);
+  --card-shadow-hover: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 6px rgb(0 0 0 / 0.32), 0 16px 32px -8px rgb(0 0 0 / 0.45), 0 36px 64px -18px rgb(0 0 0 / 0.65);
   --float-highlight: rgb(255 255 255 / 0.08);
   --float-shadow: 0 2px 8px rgb(0 0 0 / 0.4), 0 24px 60px -16px rgb(0 0 0 / 0.85);
   --glow: color-mix(in oklch, var(--brand) 40%, transparent);

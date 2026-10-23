@@ -128,8 +128,8 @@ export default async function HomePage() {
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="rounded-xl transition-transform active:scale-[0.98]">
-            <Card className="gap-2 py-4 transition-colors hover:bg-muted/40">
+          <Link key={s.label} href={s.href} className="group/stat rounded-2xl outline-none transition-transform active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring/50">
+            <Card className="gap-2 py-4 transition-[translate,box-shadow] duration-300 group-hover/stat:-translate-y-0.5 group-hover/stat:shadow-card-hover">
               <CardHeader className="flex flex-row items-center justify-between px-4">
                 <CardDescription className="text-xs sm:text-sm">{s.label}</CardDescription>
                 <s.icon className="hidden size-4 text-muted-foreground sm:block" />

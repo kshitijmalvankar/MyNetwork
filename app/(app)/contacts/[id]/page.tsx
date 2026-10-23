@@ -149,7 +149,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
           />
 
           {suggestions.length > 0 && (
-            <Card className="gap-4 ring-brand/20">
+            <Card className="gap-4">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <SparklesIcon className="size-4 text-brand" /> Suggested follow-ups
