@@ -80,3 +80,19 @@ export async function globalBudgetExceeded(): Promise<boolean> {
   }
   return Number(data ?? 0) >= cap;
 }
+
+/**
+ * Stops one account once its spend today crosses AI_USER_DAILY_USD, so it can't
+ * use up the budget above and pause AI for everyone. Fails closed.
+ */
+export async function userBudgetExceeded(userId: string): Promise<boolean> {
+  if (aiMode() === "mock") return false;
+  const cap = Number(process.env.AI_USER_DAILY_USD ?? "1");
+  if (!Number.isFinite(cap) || cap <= 0) return false;
+  const { data, error } = await adminClient().rpc("ai_user_spend_today", { p_user_id: userId });
+  if (error) {
+    console.error("[metering] user budget check failed", error.message);
+    return true;
+  }
+  return Number(data ?? 0) >= cap;
+}

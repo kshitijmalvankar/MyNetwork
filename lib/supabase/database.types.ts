@@ -450,6 +450,9 @@ isOneToOne: false
             "ai_spend_today":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"ai_user_spend_today":
+{ Args: { "p_user_id": string }; Returns: number
+                           },
 "ask_find_contacts":
 { Args: { "p_city"?: string,"p_company"?: string,"p_company_normalized"?: string,"p_country"?: string,"p_event"?: string,"p_industry"?: string,"p_limit"?: number,"p_met_after"?: string,"p_met_before"?: string,"p_name"?: string,"p_role_family"?: string,"p_seniority"?: string,"p_title"?: string }; Returns: {
               "city": string,"company": string,"country": string,"events": (string)[],"first_met": string,"full_name": string,"id": string,"industry": string,"last_contacted": string,"role_family": string,"seniority": string,"title": string,"total_count": number

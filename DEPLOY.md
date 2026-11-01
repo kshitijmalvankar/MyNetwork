@@ -41,7 +41,7 @@ Work through [docs/supabase-setup.md](docs/supabase-setup.md), with these produc
 
 1. Open [Settings → Privacy](https://openrouter.ai/settings/privacy) and turn on **Zero Data Retention** for the account. The app also requests it on every call; the account setting is a second guard.
 2. Create a new API key for production and give it a **credit limit** (for example $20 a month). This is the hard cap on AI spend.
-3. Choose `AI_GLOBAL_DAILY_USD`. When total spend for the day passes this, AI features pause for everyone until the next day (default $5).
+3. Choose `AI_GLOBAL_DAILY_USD`. When total spend for the day passes this, AI features pause for everyone until the next day (default $5). `AI_USER_DAILY_USD` does the same for one account (default $1), so a single account can't trigger that pause.
 
 ## 5. Upstash
 
@@ -70,6 +70,7 @@ Create a widget in **Managed** mode, with your Vercel address and your domain as
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | From step 6 |
    | `OPENROUTER_API_KEY` | The production key from step 4 |
    | `AI_GLOBAL_DAILY_USD` | For example `5` |
+   | `AI_USER_DAILY_USD` | For example `1` |
    | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | From step 5 |
    | `LEGAL_OPERATOR_NAME`, `LEGAL_CONTACT_EMAIL`, `LEGAL_GOVERNING_LAW` | Who runs the service, where to reach you, and whose law applies (for example `India`) |
 

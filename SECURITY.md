@@ -122,6 +122,7 @@ Only the small wrapped keys change; encrypted contacts, notes and files are not 
 - **Spend limits:**
   - per-user rate limits
   - monthly allowances per plan (`plans`, `consume_quota`)
+  - a per-account daily spend cap, so one account can't use up the global cap (`AI_USER_DAILY_USD`)
   - a global daily spend cap that pauses AI features and fails closed if it can't be checked (`AI_GLOBAL_DAILY_USD`)
   - a credit limit on the OpenRouter key itself
 

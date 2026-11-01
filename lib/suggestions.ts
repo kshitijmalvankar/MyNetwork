@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import { chatModel, costOf } from "@/lib/ai/client";
-import { globalBudgetExceeded, recordUsage } from "@/lib/ai/metering";
+import { globalBudgetExceeded, recordUsage, userBudgetExceeded } from "@/lib/ai/metering";
 import { models } from "@/lib/ai/models";
 import { openField, sealField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
@@ -82,7 +82,8 @@ export async function extractFollowUps(body: string, { about, today }: { about: 
 /** Background step after a typed note is saved. A failure only loses the suggestion, never the note. */
 export async function suggestFromNote(userId: string, contactId: string, noteId: string, body: string) {
   try {
-    if (!INTENT.test(body) || (await globalBudgetExceeded())) return;
+    // Notes have no monthly allowance, so the daily budgets are what bound this.
+    if (!INTENT.test(body) || (await globalBudgetExceeded()) || (await userBudgetExceeded(userId))) return;
     const db = adminClient();
     const [{ data: c }, { data: profile }] = await Promise.all([
       db.from("contacts").select("full_name, title, companies(name)").eq("id", contactId).eq("user_id", userId).maybeSingle(),
