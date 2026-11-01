@@ -100,7 +100,7 @@ export default async function HomePage() {
       {toReview > 0 && (
         <Link
           href="/review"
-          className="flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-subtle px-4 py-3 text-sm transition-colors hover:bg-brand-subtle/70"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-brand-subtle px-4 py-3 text-sm shadow-card transition-colors hover:bg-brand-subtle/70"
         >
           <span>
             <span className="font-medium">
@@ -115,7 +115,7 @@ export default async function HomePage() {
       {runningLow && (
         <Link
           href="/settings/usage"
-          className="flex items-center justify-between gap-3 rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm transition-colors hover:bg-warning/15"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-warning/15 px-4 py-3 text-sm shadow-card transition-colors hover:bg-warning/25"
         >
           <span>
             <span className="font-medium">
@@ -183,7 +183,7 @@ export default async function HomePage() {
           </CardHeader>
           <CardContent>
             {recent?.length ? (
-              <ul className="divide-y">
+              <ul className="-my-3">
                 {recent.map((c) => (
                   <li key={c.id}>
                     <ContactLink id={c.id} className="flex items-center gap-3 py-3">

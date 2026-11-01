@@ -23,7 +23,7 @@ export function FollowUpList({ items, today }: { items: FollowUp[]; today: strin
     });
 
   return (
-    <ul className="divide-y">
+    <ul>
       {visible.map((item) => {
         const overdue = item.due < today;
         return (

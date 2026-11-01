@@ -114,7 +114,7 @@ function BriefPanel({ contactId, firstName, knownIds, onUsed }: Pick<Props, "con
       ) : !completion ? (
         <Writing />
       ) : (
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-2xl bg-muted/60 p-4">
           <AnswerMarkdown text={completion} knownIds={known} />
         </div>
       )}
@@ -138,7 +138,7 @@ function BriefPanel({ contactId, firstName, knownIds, onUsed }: Pick<Props, "con
       )}
 
       <form
-        className="mt-auto space-y-2 border-t pt-4"
+        className="mt-auto space-y-2 pt-4"
         onSubmit={(e) => {
           e.preventDefault();
           write(true);
@@ -275,7 +275,7 @@ function DraftPanel({ contactId, firstName, emails, today, onUsed }: Pick<Props,
       )}
 
       {isLoading && (
-        <div className="space-y-3 rounded-xl border bg-card p-4 text-[15px] leading-relaxed">
+        <div className="space-y-3 rounded-2xl bg-muted/60 p-4 text-[15px] leading-relaxed">
           {!completion ? (
             <Writing />
           ) : (

@@ -47,7 +47,7 @@ export function RemindersCard({ contactId, reminders, today }: { contactId: stri
       </CardHeader>
       <CardContent className="space-y-3">
         {adding && (
-          <div className="space-y-2 rounded-lg border p-3">
+          <div className="space-y-2">
             <Input type="date" value={due} min={today} onChange={(e) => setDue(e.target.value)} className="h-9" aria-label="Due date" />
             <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="What to follow up about (optional)" className="h-9" />
             <div className="flex justify-end gap-2">

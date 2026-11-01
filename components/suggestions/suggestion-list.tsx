@@ -90,7 +90,7 @@ export function SuggestionList({ items, today, showContact = true }: { items: Su
   const [visible, hide] = useOptimistic(items, (list, id: string) => list.filter((s) => s.id !== id));
   if (visible.length === 0) return <p className="text-sm text-muted-foreground">All caught up.</p>;
   return (
-    <ul className="divide-y">
+    <ul>
       {visible.map((s) => (
         <Item key={s.id} s={s} today={today} showContact={showContact} onDone={hide} />
       ))}

@@ -161,7 +161,7 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
             </div>
           </FieldGroup>
         </div>
-        <SheetFooter className="border-t">
+        <SheetFooter>
           <Button onClick={save} disabled={pending || !form.fullName.trim()} className="bg-brand text-brand-foreground hover:bg-brand/90">
             {pending && <Spinner />} Save changes
           </Button>

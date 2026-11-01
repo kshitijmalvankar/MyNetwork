@@ -99,7 +99,7 @@ export function VoiceRecorder({ contactId }: { contactId: string }) {
 
   if (state.kind === "recording") {
     return (
-      <div className="flex flex-1 items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-1.5" role="status">
+      <div className="flex flex-1 items-center gap-2 rounded-2xl bg-destructive/10 px-3 py-1.5" role="status">
         <span className="relative flex size-2.5">
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/60" />
           <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
@@ -130,7 +130,7 @@ export function VoiceRecorder({ contactId }: { contactId: string }) {
 
   if (state.kind === "failed") {
     return (
-      <div className="flex flex-1 flex-wrap items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-sm">
+      <div className="flex flex-1 flex-wrap items-center gap-2 rounded-2xl bg-destructive/10 px-3 py-1.5 text-sm">
         <span className="flex-1 text-destructive">{state.message}</span>
         <Button
           size="sm"
