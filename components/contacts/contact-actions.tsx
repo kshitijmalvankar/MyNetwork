@@ -117,7 +117,7 @@ export function ContactMenu({ contactId, name }: { contactId: string; name: stri
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-lg" aria-label="More actions">
+          <Button variant="outline" size="icon" aria-label="More actions">
             <EllipsisIcon />
           </Button>
         </DropdownMenuTrigger>

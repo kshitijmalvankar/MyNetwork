@@ -151,7 +151,7 @@ export function Timeline({ contactId, items, timeZone }: { contactId: string; it
                 item.kind === "note" ? (NOTE_KINDS[item.noteKind] ?? { label: "Note", icon: StickyNoteIcon }) : (INTERACTION[item.type] ?? INTERACTION.met);
               return (
                 <li key={`${item.kind}-${item.id}`} className="relative">
-                  <span className="absolute top-0.5 -left-[2.07rem] flex size-6 items-center justify-center rounded-full border bg-background">
+                  <span className="absolute top-0.5 -left-[2.07rem] flex size-6 items-center justify-center rounded-full bg-muted ring-4 ring-card">
                     <meta.icon className="size-3.5 text-muted-foreground" />
                   </span>
                   <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
