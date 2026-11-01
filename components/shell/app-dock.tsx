@@ -57,7 +57,7 @@ export function AppDock({ user }: { user: ShellUser }) {
       <nav aria-label="Primary" className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
         <div
           style={{ viewTransitionName: "app-dock" }}
-          className="pointer-events-auto mx-auto flex h-16 max-w-md items-center rounded-full bg-card/80 px-1.5 shadow-float backdrop-blur-xl backdrop-saturate-150 dark:bg-card/75"
+          className="pointer-events-auto mx-auto flex h-16 max-w-md items-center rounded-full bg-card/90 px-1.5 shadow-float backdrop-blur-xl backdrop-saturate-150 dark:bg-card/85"
         >
           {dockTabs.left.map((item) => (
             <Tab key={item.href} item={item} pathname={pathname} />
