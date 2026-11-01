@@ -113,3 +113,48 @@ Run with `pnpm eval insights` on the fictional network. It makes five runs on th
 - **Each observation now covers one topic**, so the model doesn't link unrelated numbers (for example, which event this month's new people came from).
 - **Nothing personal is sent.** The model sees only counts and the names of companies, events, roles, industries and places, never a person's name or details. It can only suggest actions from a fixed list, and the app maps those to links, so it never writes a URL.
 - **The statistics are plain SQL and free.** The summary is cached, encrypted, for a week. Rewriting it on request counts as one brief.
+
+# AI cost review (2026-11-01)
+
+Prices checked on OpenRouter the same day. Haiku is $0.10 in and $0.50 out per million tokens, cached input is $0.01, and Sonnet is $2 and $10. An account using its whole free allowance cost about $0.25 a month if no scan escalated, and Ask was about 80% of that.
+
+## Ask
+
+Before the changes, each question used about 11,000 input tokens over two steps. About 4,500 of those per step were the same instructions and tool definitions.
+
+| | Correct | Cost / question | Input tokens | Fixed prompt |
+|---|---|---|---|---|
+| Before | 20/20 | $0.00132 | 11,062 | about 4,500 tokens |
+| After, first question in a while | 19 to 20/20 (see below) | about $0.0009 | about 9,000 | 3,577 tokens |
+| After, questions in quick succession | 19 to 20/20 (see below) | about $0.0004 | about 9,000 | 3,577 tokens |
+
+What changed:
+- **Caching.** The fixed instructions and tools are marked as cacheable, and the name and date moved into a separate message after them, so the cached part is the same for everyone. Repeats cost a tenth of the price; the first use costs a quarter more. It works on the zero-data-retention route, tested down to 2,700 tokens.
+- **Counting moved into `findContacts`,** so the long list of filters is sent once, not twice.
+- **Smaller results.** 15 people by default instead of 25, 6 note passages instead of 8, and dates without times. This barely shows on 32 fictional people, but matters on a bigger network.
+- **The last step must answer,** and the most steps a question can take went from 6 to 5.
+
+Findings:
+- **Answers can still name search noise.** "Who did I meet from Initech?" named unrelated people in one of four runs after the instructions were tightened.
+- **A score cutoff for note search doesn't work.** "Initech" scores up to 0.31 on unrelated passages, while the best real match for "warehouse automation" is 0.35 and good second matches are about 0.25. The instructions tell the model to ignore unrelated results instead.
+- **Routing to the fastest provider didn't help.** p50 stayed between 4.4 and 5 s, so it isn't used.
+
+## Newer models
+
+| Model | Ask runs (of 4) at 20/20 | Cost / question | p50 | Notes |
+|---|---|---|---|---|
+| **anthropic/claude-haiku-5.5** | 3 | $0.0004 to $0.0006 | 4.7 s | **Default.** Available from two providers |
+| inception/mercury-3 | 3 | $0.0003 | 2.7 s | Refused an email lookup as harmful, and returned broken structured output on Insights |
+| inception/mercury-2.5 | 2 | $0.0002 | 2.8 s | Missed people ("Who speaks Japanese?") and answered "Who did I meet in June 2026?" without naming anyone |
+| deepseek/deepseek-v4.1-flash | 1 of 1 | $0.0006 | 3.3 s | No saving over Haiku |
+| minimax/minimax-m3.1-flash | 0 of 1 | n/a | n/a | Its endpoints can't turn reasoning off |
+
+Mercury 3 is about 2 seconds faster, but refusing to look up an email address is a core failure for a contacts app, and the saving is a fraction of a cent. Worth re-running when it's more mature. Haiku is also cheaper than `gemini-3.1-flash-lite`, so text work shouldn't move to it.
+
+## Scans, briefs and limits
+
+- **Escalation.** Sonnet costs about 17 times as much per card. A low confidence rating on the company or title used to trigger it; now it only asks the user to check that field. A doubtful name, unreadable contact details or no contact details still escalate, and a QR code with contact details counts as having them. The six fixture cards never escalated, so how often real cards did is unknown.
+- **Briefs** stay free to reopen for a week instead of until midnight, unless something about the person changes.
+- **Per-account cap.** Notes have no monthly allowance, so one account saving notes as fast as the rate limit allows could reach the global $5 a day and pause AI for everyone. `AI_USER_DAILY_USD` (default $1) stops that account first. Tested live.
+- **Labels.** `ai_usage` now records follow-ups from notes as `notes` and Insights summaries as `insights`, not `brief`. Their past rows keep the old label.
+- **Follow-up keyword check.** It sent 7 of the 17 fixture notes to AI, and words like "next" let through notes with no promise in them. It's left as it is, because one call per note will replace it when notes also feed the graph.
