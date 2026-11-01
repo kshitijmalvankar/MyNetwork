@@ -16,10 +16,9 @@ import {
 } from "lucide-react";
 import type { AskUIMessage } from "@/lib/ai/ask";
 import { AnswerMarkdown, plainAnswer } from "@/components/ask/markdown";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PersonAvatar } from "@/components/contacts/person-avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Part = AskUIMessage["parts"][number];
@@ -145,9 +144,7 @@ function Sources({ text, refs }: { text: string; refs: Refs }) {
           href={`/contacts/${id}`}
           className="inline-flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2.5 pl-0.5 text-xs font-medium transition-colors hover:bg-accent"
         >
-          <Avatar className="size-5">
-            <AvatarFallback className="bg-brand-subtle text-[9px] text-brand">{initials(refs.names.get(id)!)}</AvatarFallback>
-          </Avatar>
+          <PersonAvatar name={refs.names.get(id)!} className="size-5 text-[9px]" />
           {refs.names.get(id)}
         </Link>
       ))}

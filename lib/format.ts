@@ -21,3 +21,12 @@ export function timeAgo(date: Date | string, now = new Date()) {
   if (abs < 86400 * 365) return relative.format(Math.round(seconds / (86400 * 30)), "month");
   return relative.format(Math.round(seconds / (86400 * 365)), "year");
 }
+
+const PERSON_HUES = [34, 58, 85, 150, 195, 245, 290, 340];
+
+/** A hue from someone's name, so they keep the same color everywhere in the app. */
+export function personHue(name: string) {
+  let hash = 0;
+  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return PERSON_HUES[hash % PERSON_HUES.length];
+}

@@ -234,6 +234,24 @@
     radial-gradient(50rem 26rem at 100% -8rem, color-mix(in oklch, oklch(0.62 0.12 55) 12%, transparent), transparent 70%);
 }
 
+/* Each person's own color (`--hue`, from their name): a soft gradient avatar and a wash on their profile. */
+.person-avatar {
+  color: oklch(0.32 0.09 var(--hue));
+  background: linear-gradient(135deg, oklch(0.9 0.07 var(--hue)), oklch(0.8 0.11 calc(var(--hue) + 22)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 3px rgb(48 32 20 / 0.12);
+}
+.dark .person-avatar {
+  color: oklch(0.93 0.04 var(--hue));
+  background: linear-gradient(135deg, oklch(0.46 0.1 var(--hue)), oklch(0.36 0.09 calc(var(--hue) + 22)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 3px rgb(0 0 0 / 0.4);
+}
+.person-wash {
+  background: linear-gradient(180deg, oklch(0.93 0.05 var(--hue) / 0.9), transparent);
+}
+.dark .person-wash {
+  background: linear-gradient(180deg, oklch(0.36 0.08 var(--hue) / 0.55), transparent);
+}
+
 /*
  * Desktop rail: icons only, opening to show labels while the pointer is over
  * it (`data-open`, set in app-rail.tsx), on keyboard focus, or while its

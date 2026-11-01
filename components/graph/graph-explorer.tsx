@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, MaximizeIcon, MessageCircleIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
 import { ForceCanvas, KIND_COLORS, type ForceCanvasHandle } from "@/components/graph/force-canvas";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PersonAvatar } from "@/components/contacts/person-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatDay } from "@/lib/dates";
-import { initials, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import type { GraphData } from "@/lib/graph";
 import { buildGraph, matchingPeople, similarTo, type GraphFilters, type GraphOptions, type NodeKind } from "@/lib/graph-model";
 import { cn } from "@/lib/utils";
@@ -80,9 +80,7 @@ function PersonRow({ id, data, onSelect, detail }: { id: string; data: GraphData
   return (
     <li>
       <button type="button" onClick={() => onSelect(p.id)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-accent">
-        <Avatar className="size-7">
-          <AvatarFallback className="bg-brand-subtle text-[10px] text-brand">{initials(p.name)}</AvatarFallback>
-        </Avatar>
+        <PersonAvatar name={p.name} className="size-7 text-[10px]" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium">{p.name}</span>
           <span className="block truncate text-xs text-muted-foreground">{[p.title, company].filter(Boolean).join(" · ") || "—"}</span>
