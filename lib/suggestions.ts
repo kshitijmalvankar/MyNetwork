@@ -69,7 +69,7 @@ export async function extractFollowUps(body: string, { about, today }: { about: 
   return {
     items: result.output.followUps,
     usage: {
-      feature: "brief" as const,
+      feature: "notes" as const,
       model: models.chat,
       inputTokens: result.usage.inputTokens ?? 0,
       outputTokens: result.usage.outputTokens ?? 0,

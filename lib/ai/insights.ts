@@ -99,7 +99,7 @@ export async function writeSummary(stats: NetworkStats, ctx: { name?: string | n
     maxOutputTokens: 700,
   });
   const usage: UsageEntry = {
-    feature: "brief",
+    feature: "insights",
     model: models.chat,
     inputTokens: result.usage.inputTokens ?? 0,
     outputTokens: result.usage.outputTokens ?? 0,

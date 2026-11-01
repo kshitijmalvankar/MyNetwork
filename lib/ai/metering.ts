@@ -5,7 +5,8 @@ import { adminClient } from "@/lib/supabase/admin";
 export type Feature = "scan" | "ask" | "voice_minutes" | "brief" | "index";
 
 export type UsageEntry = {
-  feature: Feature;
+  /** A monthly allowance, or background work that has none. */
+  feature: Feature | "notes" | "insights";
   model: string;
   inputTokens: number;
   outputTokens: number;
