@@ -35,7 +35,8 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
         title="Contacts"
         description={empty ? "Everyone you've met." : `${total} ${total === 1 ? "person" : "people"}${filtered ? " match" : " in your network"}`}
         actions={
-          <>
+          // Desktop only: phones have Scan in the dock, and export in Settings → Your data.
+          <div className="hidden items-center gap-2 sm:flex">
             {!empty && (
               <StepUpBoundary>
                 <ExportButton />
@@ -43,10 +44,10 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
             )}
             <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
               <Link href="/scan">
-                <ScanLineIcon /> <span className="hidden sm:inline">Scan a card</span>
+                <ScanLineIcon /> Scan a card
               </Link>
             </Button>
-          </>
+          </div>
         }
       />
 

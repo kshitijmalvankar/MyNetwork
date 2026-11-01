@@ -1,82 +1,63 @@
-import Link from "next/link";
 import { ChevronRightIcon } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ContactLink } from "@/components/contacts/contact-link";
+import { PersonAvatar, PersonNameMorph } from "@/components/contacts/person-avatar";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import type { ContactRow } from "@/lib/contacts/queries";
-import { initials, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+// Columns drop away as space runs out, so the list never scrolls sideways.
+const COLUMNS =
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_6.5rem] lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,1.2fr)_minmax(0,1fr)_6.5rem]";
 
 function place(r: ContactRow) {
   return [r.city, r.country].filter(Boolean).join(", ") || "—";
 }
 
-/** Table on wide screens, cards on phones. */
+/** Everyone in one floating panel: just name and role on phones, more columns as the screen grows. */
 export function ContactList({ rows }: { rows: ContactRow[] }) {
   return (
-    <>
-      <div className="hidden overflow-hidden rounded-xl border md:block">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="pl-4">Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="pr-4 text-right">Last contacted</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.id} className="group relative">
-                <TableCell className="pl-4">
-                  <Link href={`/contacts/${r.id}`} className="flex items-center gap-3 after:absolute after:inset-0">
-                    <Avatar className="size-8">
-                      <AvatarFallback className="bg-brand-subtle text-xs text-brand">{initials(r.fullName)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{r.fullName}</p>
-                      <p className="max-w-64 truncate text-xs text-muted-foreground">{r.title ?? "—"}</p>
-                    </div>
-                  </Link>
-                </TableCell>
-                <TableCell className="max-w-56 truncate">{r.companyName ?? "—"}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {r.roleFamily && <Badge variant="secondary">{r.roleFamily}</Badge>}
-                    {r.seniority && <Badge variant="outline">{r.seniority}</Badge>}
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">{place(r)}</TableCell>
-                <TableCell className="pr-4 text-right text-muted-foreground">
-                  {r.lastContactedAt ? timeAgo(r.lastContactedAt) : "—"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <Card className="gap-0 px-2 py-2 md:px-3 md:py-3">
+      <div aria-hidden className={cn(COLUMNS, "hidden px-3 pt-1 pb-2 text-xs font-medium text-muted-foreground md:grid")}>
+        <span>Name</span>
+        <span>Company</span>
+        <span className="hidden lg:block">Role</span>
+        <span className="hidden lg:block">Location</span>
+        <span className="text-right">Last contacted</span>
       </div>
-
-      <ul className="space-y-2 md:hidden">
+      <ul>
         {rows.map((r) => (
           <li key={r.id}>
-            <Link href={`/contacts/${r.id}`} className="flex items-center gap-3 rounded-xl border bg-card p-3 active:bg-muted/50">
-              <Avatar className="size-10">
-                <AvatarFallback className="bg-brand-subtle text-brand">{initials(r.fullName)}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{r.fullName}</p>
-                <p className="truncate text-sm text-muted-foreground">{[r.title, r.companyName].filter(Boolean).join(" · ") || "—"}</p>
-                {r.roleFamily && (
-                  <div className="mt-1 flex gap-1">
-                    <Badge variant="secondary">{r.roleFamily}</Badge>
-                  </div>
-                )}
-              </div>
-              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
-            </Link>
+            <ContactLink
+              id={r.id}
+              className={cn(
+                COLUMNS,
+                "rounded-xl px-3 py-2 outline-none transition-[background-color,scale] duration-150 hover:bg-muted/70 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring/50",
+              )}
+            >
+              <span className="flex min-w-0 items-center gap-3">
+                <PersonAvatar name={r.fullName} morphId={r.id} />
+                <span className="min-w-0">
+                  <PersonNameMorph id={r.id}>
+                    <span className="block w-fit max-w-full truncate font-medium">{r.fullName}</span>
+                  </PersonNameMorph>
+                  <span className="block truncate text-[13px] text-muted-foreground md:hidden">{[r.title, r.companyName].filter(Boolean).join(" · ") || "—"}</span>
+                  <span className="hidden truncate text-[13px] text-muted-foreground md:block">{r.title ?? "—"}</span>
+                </span>
+              </span>
+              <span className="hidden truncate text-sm md:block">{r.companyName ?? "—"}</span>
+              <span className="hidden min-w-0 items-center gap-1.5 lg:flex">
+                {r.roleFamily && <Badge variant="secondary">{r.roleFamily}</Badge>}
+                {r.seniority && <span className="truncate text-xs text-muted-foreground">{r.seniority}</span>}
+              </span>
+              <span className="hidden truncate text-sm text-muted-foreground lg:block">{place(r)}</span>
+              <span className="hidden text-right text-sm text-muted-foreground md:block">{r.lastContactedAt ? timeAgo(r.lastContactedAt) : "—"}</span>
+              <ChevronRightIcon className="size-4 text-muted-foreground/60 md:hidden" />
+            </ContactLink>
           </li>
         ))}
       </ul>
-    </>
+    </Card>
   );
 }

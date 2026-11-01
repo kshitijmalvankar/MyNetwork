@@ -68,7 +68,7 @@ export function ContactsToolbar({ facets }: { facets: Facets }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row">
-        <InputGroup className="h-10 flex-1">
+        <InputGroup className="h-11 flex-1 rounded-full bg-card px-1 shadow-sm">
           <InputGroupAddon>{pending ? <Spinner /> : <SearchIcon />}</InputGroupAddon>
           <InputGroupInput
             value={q}
@@ -87,7 +87,7 @@ export function ContactsToolbar({ facets }: { facets: Facets }) {
         <div className="flex gap-2">
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="h-10 flex-1 sm:flex-none">
+              <Button variant="outline" className="h-11 flex-1 px-4 sm:flex-none">
                 <ListFilterIcon /> Filter
                 {active.length > 0 && <Badge className="ml-1 h-5 min-w-5 rounded-full bg-brand px-1.5 text-brand-foreground">{active.length}</Badge>}
               </Button>
@@ -128,7 +128,7 @@ export function ContactsToolbar({ facets }: { facets: Facets }) {
             </PopoverContent>
           </Popover>
           <Select value={sort} onValueChange={(v) => push((p) => p.set("sort", v))}>
-            <SelectTrigger className="h-10 w-auto min-w-36" aria-label="Sort">
+            <SelectTrigger className="h-11! w-auto min-w-36 rounded-full bg-card px-4 shadow-sm dark:bg-muted" aria-label="Sort">
               <ArrowUpDownIcon className="text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
