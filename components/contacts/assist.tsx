@@ -356,7 +356,7 @@ export function AssistCard(props: Props) {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          {left} of {props.quota.quota} briefs and drafts left this month. Opening the same brief again the same day is free.
+          {left} of {props.quota.quota} briefs and drafts left this month. Opening the same brief again within a week is free.
         </p>
       </CardContent>
 

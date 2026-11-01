@@ -113,11 +113,14 @@ export function personContextText({ contact: c, related }: PersonContext): strin
 
 let cacheKey: Buffer | undefined;
 
-/** Changes whenever anything the brief depends on changes, including the date. */
-export function briefInputHash(userId: string, context: string, purpose: string, today: string): string {
+/** A brief stays free to reopen for this long, as long as nothing about the person has changed. */
+export const BRIEF_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Changes whenever anything the brief depends on changes. */
+export function briefInputHash(userId: string, context: string, purpose: string): string {
   cacheKey ??= deriveKey(blindIndexKey(), "ai-cache");
   return createHmac("sha256", cacheKey)
-    .update(JSON.stringify([userId, PROMPT_VERSION, models.chat, today, purpose, context]))
+    .update(JSON.stringify([userId, PROMPT_VERSION, models.chat, purpose, context]))
     .digest("base64url");
 }
 

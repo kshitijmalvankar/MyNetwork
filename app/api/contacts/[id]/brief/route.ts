@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { streamText } from "ai";
 import { z } from "zod";
-import { briefInputHash, briefInstructions, briefPrompt, loadPersonContext, personContextText } from "@/lib/ai/brief";
+import { BRIEF_MAX_AGE_MS, briefInputHash, briefInstructions, briefPrompt, loadPersonContext, personContextText } from "@/lib/ai/brief";
 import { chatModel, costOf } from "@/lib/ai/client";
 import { guardAiRequest, textError } from "@/lib/ai/guard";
 import { recordUsage, releaseQuota } from "@/lib/ai/metering";
@@ -26,7 +26,7 @@ const cacheField = (userId: string, rowId: string) => ({ userId, table: "ai_cach
 /**
  * A meeting brief for one contact, streamed as plain text. The same brief is
  * served from an encrypted cache (free) until anything it depends on changes
- * or the day rolls over.
+ * or a week has passed.
  */
 export async function POST(request: NextRequest, { params }: RouteContext<"/api/contacts/[id]/brief">) {
   const user = await getAuthorizedUser();
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteContext<"/api/
   const profile = await getProfile(user.id);
   const today = todayIn(profile?.timezone);
   const context = personContextText(person);
-  const hash = briefInputHash(user.id, context, purpose, today);
+  const hash = briefInputHash(user.id, context, purpose);
 
   if (!refresh) {
     const { data: cached } = await supabase
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteContext<"/api/
       .eq("kind", "brief")
       .eq("contact_id", id)
       .maybeSingle();
-    if (cached?.input_hash === hash) {
+    if (cached?.input_hash === hash && Date.now() - new Date(cached.created_at).getTime() < BRIEF_MAX_AGE_MS) {
       const dek = await getUserDataKey(user.id);
       const text = openField(dek, fromBytea(cached.payload_enc), cacheField(user.id, cached.id)).toString("utf8");
       return new Response(text, {
