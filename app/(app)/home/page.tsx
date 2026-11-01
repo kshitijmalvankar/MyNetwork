@@ -1,18 +1,19 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BellIcon, Building2Icon, CalendarDaysIcon, ClockIcon, ScanLineIcon, SparklesIcon, UsersIcon } from "lucide-react";
+import { ContactLink } from "@/components/contacts/contact-link";
+import { PersonAvatar, PersonNameMorph } from "@/components/contacts/person-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { FollowUpList, type FollowUp } from "@/components/home/follow-up-list";
 import { PageContainer, PageHeader } from "@/components/shell/page-header";
 import { SuggestionList } from "@/components/suggestions/suggestion-list";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfile, requireUser } from "@/lib/auth/dal";
 import { openField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { formatDay, todayIn } from "@/lib/dates";
-import { initials, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { getSuggestions, refreshReconnects } from "@/lib/suggestions";
 import { fromBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
@@ -185,18 +186,18 @@ export default async function HomePage() {
               <ul className="divide-y">
                 {recent.map((c) => (
                   <li key={c.id}>
-                    <Link href={`/contacts/${c.id}`} className="flex items-center gap-3 py-3 first:pt-0">
-                      <Avatar className="size-8">
-                        <AvatarFallback className="bg-brand-subtle text-xs text-brand">{initials(c.full_name)}</AvatarFallback>
-                      </Avatar>
+                    <ContactLink id={c.id} className="flex items-center gap-3 py-3">
+                      <PersonAvatar name={c.full_name} morphId={c.id} className="size-9" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{c.full_name}</p>
+                        <PersonNameMorph id={c.id}>
+                          <p className="w-fit max-w-full truncate text-sm font-medium">{c.full_name}</p>
+                        </PersonNameMorph>
                         <p className="truncate text-xs text-muted-foreground">
                           {[c.title, (c.companies as { name: string } | null)?.name].filter(Boolean).join(" · ") || "—"}
                         </p>
                       </div>
                       <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(c.created_at)}</span>
-                    </Link>
+                    </ContactLink>
                   </li>
                 ))}
               </ul>

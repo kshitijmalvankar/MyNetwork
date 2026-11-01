@@ -7,6 +7,35 @@ test("lists your network and finds people by search @phone", async ({ page }) =>
   await page.getByLabel("Search contacts").fill("Cobalt");
   await expect(page.getByRole("link", { name: /Rahul Desai/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Priya Shah/ })).toHaveCount(0);
+  await expect(page.getByLabel("Search contacts")).toBeFocused();
+});
+
+test("carries a person's avatar and name into their profile and back @phone", async ({ page }) => {
+  // The pseudo-elements only exist mid-transition, so note them as each one starts.
+  await page.addInitScript(() => {
+    const seen: string[] = [];
+    Object.assign(window, { viewTransitions: seen });
+    const start = document.startViewTransition.bind(document);
+    document.startViewTransition = ((...args: Parameters<typeof start>) => {
+      const transition = start(...args);
+      transition.ready.then(
+        () => seen.push(document.getAnimations().map((a) => (a.effect as KeyframeEffect).pseudoElement).join(" ")),
+        () => {},
+      );
+      return transition;
+    }) as typeof document.startViewTransition;
+  });
+  const lastTransition = () => page.evaluate(() => (window as unknown as { viewTransitions: string[] }).viewTransitions.at(-1) ?? "");
+
+  await page.goto("/contacts");
+  await page.getByRole("link", { name: /Priya Shah/ }).first().click();
+  await expect(page.getByRole("heading", { level: 1, name: "Priya Shah" })).toBeVisible();
+  await expect.poll(lastTransition).toContain("person-avatar-");
+  expect(await lastTransition()).toContain("person-name-");
+
+  await page.getByRole("main").getByRole("link", { name: "Contacts", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Contacts" })).toBeVisible();
+  await expect.poll(lastTransition).toContain("person-avatar-");
 });
 
 test("adds a note and suggests the follow-up promised in it", async ({ page }) => {

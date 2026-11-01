@@ -309,6 +309,38 @@
 ::view-transition-new(.page-enter) {
   animation: 280ms var(--ease-out) 40ms both vt-rise-in;
 }
+/* Going deeper (list to profile) moves the page one way, coming back the other. */
+::view-transition-old(.depth-forward),
+::view-transition-old(.depth-back) {
+  animation:
+    120ms var(--ease-out) both vt-fade-out,
+    280ms var(--ease-out) both vt-slide-out;
+}
+::view-transition-new(.depth-forward),
+::view-transition-new(.depth-back) {
+  animation:
+    240ms var(--ease-out) 40ms both vt-fade-in,
+    320ms var(--ease-out) both vt-slide-in;
+}
+::view-transition-old(.depth-forward),
+::view-transition-new(.depth-back) {
+  --vt-slide: -1.25rem;
+}
+::view-transition-old(.depth-back),
+::view-transition-new(.depth-forward) {
+  --vt-slide: 1.25rem;
+}
+/* An avatar or name flying between the list and a profile. */
+::view-transition-group(.morph) {
+  animation-duration: 340ms;
+  animation-timing-function: var(--ease-out);
+  z-index: 40;
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  height: 100%;
+  animation-duration: 200ms;
+}
 ::view-transition-group(app-rail),
 ::view-transition-group(app-dock) {
   animation: none;
@@ -350,6 +382,16 @@
     opacity: 0;
   }
 }
+@keyframes vt-slide-out {
+  to {
+    translate: var(--vt-slide) 0;
+  }
+}
+@keyframes vt-slide-in {
+  from {
+    translate: var(--vt-slide) 0;
+  }
+}
 
 /* With "reduce motion" on, things still fade in and out, but nothing slides, grows or springs. */
 @media (prefers-reduced-motion: reduce) {
@@ -370,8 +412,17 @@
   ::view-transition-new(.page-enter) {
     animation-name: vt-fade-in;
   }
+  ::view-transition-old(.depth-forward),
+  ::view-transition-old(.depth-back) {
+    animation: 120ms var(--ease-out) both vt-fade-out;
+  }
+  ::view-transition-new(.depth-forward),
+  ::view-transition-new(.depth-back) {
+    animation: 240ms var(--ease-out) both vt-fade-in;
+  }
   ::view-transition-group(rail-active),
-  ::view-transition-group(dock-active) {
+  ::view-transition-group(dock-active),
+  ::view-transition-group(.morph) {
     animation-duration: 0s;
   }
   .app-rail .rail-label {
