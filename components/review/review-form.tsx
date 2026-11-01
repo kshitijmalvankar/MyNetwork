@@ -271,6 +271,7 @@ export function ReviewForm({
               <Field>
                 <FieldLabel htmlFor="title">Job title</FieldLabel>
                 <Input id="title" value={card.title} onChange={(e) => set("title", e.target.value)} className="h-10" />
+                <Hint issues={issues} field="title" />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field>
@@ -317,6 +318,7 @@ export function ReviewForm({
               <Field>
                 <FieldLabel htmlFor="company">Company</FieldLabel>
                 <Input id="company" value={card.company} onChange={(e) => set("company", e.target.value)} className="h-10" />
+                <Hint issues={issues} field="company" />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field>

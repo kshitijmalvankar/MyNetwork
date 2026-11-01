@@ -54,11 +54,16 @@ export function normalizeCompanyName(name: string): string {
 }
 
 /**
- * Deterministic checks on a model's reading of a card. These decide whether
- * to escalate to a stronger model, because a model's own confidence is not a
- * reliable signal on its own.
+ * Deterministic checks on a model's reading of a card. These decide whether to
+ * escalate to a stronger model, which costs about 17 times as much, because a
+ * model's own confidence is not a reliable signal on its own. Doubts about the
+ * company or title only ask the user to check, since they review every card.
  */
-export function normalizeAndValidate(card: CardExtraction, defaultRegion?: string): { card: NormalizedCard; validation: Validation } {
+export function normalizeAndValidate(
+  card: CardExtraction,
+  defaultRegion?: string,
+  { contactFromQr = false }: { contactFromQr?: boolean } = {},
+): { card: NormalizedCard; validation: Validation } {
   const issues: FieldIssue[] = [];
   const region = card.country && /^[A-Z]{2}$/.test(card.country) ? card.country : defaultRegion;
 
@@ -88,14 +93,15 @@ export function normalizeAndValidate(card: CardExtraction, defaultRegion?: strin
 
   if (card.country && !/^[A-Z]{2}$/.test(card.country)) issues.push({ field: "country", message: "Unknown country code" });
 
-  const lowConfidence = (["fullName", "company", "title"] as const).filter((k) => card.confidence[k] === "low");
+  for (const field of ["fullName", "company", "title"] as const) {
+    if (card[field] && card.confidence[field] === "low") issues.push({ field, message: "This was hard to read, so please check it" });
+  }
+
   const hardIssue = issues.some((i) => i.field === "fullName" || i.field === "emails" || i.field === "phones");
+  const noContact = emails.length === 0 && phoneNumbers.length === 0 && !contactFromQr;
 
   return {
     card: { ...card, fullName: name, emails, phoneNumbers, website },
-    validation: {
-      issues,
-      shouldEscalate: card.isBusinessCard && (hardIssue || lowConfidence.length > 0 || (emails.length === 0 && phoneNumbers.length === 0)),
-    },
+    validation: { issues, shouldEscalate: card.isBusinessCard && (hardIssue || noContact) },
   };
 }

@@ -40,14 +40,28 @@ describe("normalizeAndValidate", () => {
     expect(fallback.card.phoneNumbers).toEqual(["+919876543210"]);
   });
 
-  it("escalates on unreadable contact details, missing name or low confidence", () => {
+  it("escalates on unreadable contact details or a missing or doubtful name", () => {
     expect(normalizeAndValidate({ ...base, emails: ["ananya at xyz"] }).validation.shouldEscalate).toBe(true);
     expect(normalizeAndValidate({ ...base, phones: [{ number: "12", kind: "work" }] }).validation.shouldEscalate).toBe(true);
     expect(normalizeAndValidate({ ...base, fullName: "" }).validation.shouldEscalate).toBe(true);
     expect(normalizeAndValidate({ ...base, emails: [], phones: [] }).validation.shouldEscalate).toBe(true);
-    expect(
-      normalizeAndValidate({ ...base, confidence: { ...base.confidence, company: "low" } }).validation.shouldEscalate,
-    ).toBe(true);
+    expect(normalizeAndValidate({ ...base, confidence: { ...base.confidence, fullName: "low" } }).validation.shouldEscalate).toBe(true);
+  });
+
+  it("asks the user to check a doubtful company or title instead of escalating", () => {
+    const { validation } = normalizeAndValidate({ ...base, confidence: { ...base.confidence, company: "low", title: "low" } });
+    expect(validation.shouldEscalate).toBe(false);
+    expect(validation.issues.map((i) => i.field)).toEqual(["company", "title"]);
+  });
+
+  it("ignores doubts about a field the card doesn't have", () => {
+    const { validation } = normalizeAndValidate({ ...base, title: null, confidence: { ...base.confidence, title: "low" } });
+    expect(validation.issues).toEqual([]);
+    expect(validation.shouldEscalate).toBe(false);
+  });
+
+  it("doesn't escalate a card with no printed contact details when its QR code has them", () => {
+    expect(normalizeAndValidate({ ...base, emails: [], phones: [] }, undefined, { contactFromQr: true }).validation.shouldEscalate).toBe(false);
   });
 
   it("does not escalate things that are not business cards", () => {

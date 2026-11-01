@@ -122,19 +122,21 @@ export async function extractCard(
   { defaultRegion, qr, forceStrong = false }: { defaultRegion?: string; qr?: QrContact | null; forceStrong?: boolean } = {},
 ): Promise<ExtractionResult> {
   const usage: UsageEntry[] = [];
+  // Exact details from a QR code mean a card with none in print needs no second look.
+  const check = (card: CardExtraction) => normalizeAndValidate(card, defaultRegion, { contactFromQr: Boolean(qr?.emails.length || qr?.phones.length) });
 
   let modelUsed = forceStrong ? models.visionStrong : models.vision;
   const first = await readCard(modelUsed, images, forceStrong);
   usage.push(first.usage);
 
-  let checked = first.card ? normalizeAndValidate(first.card, defaultRegion) : null;
+  let checked = first.card ? check(first.card) : null;
   let escalated = forceStrong;
 
   if (!forceStrong && (!checked || checked.validation.shouldEscalate)) {
     const second = await readCard(models.visionStrong, images, true);
     usage.push(second.usage);
     if (second.card) {
-      const secondChecked = normalizeAndValidate(second.card, defaultRegion);
+      const secondChecked = check(second.card);
       // Keep whichever answer has fewer problems.
       if (!checked || secondChecked.validation.issues.length <= checked.validation.issues.length) {
         checked = secondChecked;
