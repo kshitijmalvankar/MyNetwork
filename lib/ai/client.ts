@@ -1,5 +1,6 @@
 import "server-only";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import type { SystemModelMessage } from "ai";
 import { hashedEmbeddingModel } from "@/lib/ai/hashed-embedding";
 import { aiMode } from "@/lib/ai/mode";
 import { recordedModel } from "@/lib/ai/replay";
@@ -34,6 +35,17 @@ export function chatModel(modelId: string, { reasoning }: { reasoning?: "none" |
   });
   return mode === "record" ? recordedModel(modelId, { reasoning }, model) : model;
 }
+
+/**
+ * Instructions the provider may keep for a few minutes, so repeats cost a tenth
+ * of the price (the first use costs a quarter more). Everything sent before this
+ * point is cached too, so it must never vary between requests.
+ */
+export const cachedSystem = (content: string): SystemModelMessage => ({
+  role: "system",
+  content,
+  providerOptions: { openrouter: { cacheControl: { type: "ephemeral" } } },
+});
 
 /** Embeddings get the same private routing as chat models. */
 export function embeddingModel(modelId: string) {

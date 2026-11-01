@@ -3,17 +3,16 @@
 //   pnpm eval ask                      default chat model
 //   EVAL_CHAT_MODELS=a/b,c/d pnpm eval ask
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { generateText, isStepCount } from "ai";
+import { generateText } from "ai";
 import { describe, expect, it } from "vitest";
-import { askInstructions, createAskTools, type AskContext } from "@/lib/ai/ask";
-import { chatModel, costOf } from "@/lib/ai/client";
+import { askSettings, createAskTools, type AskContext } from "@/lib/ai/ask";
+import { costOf } from "@/lib/ai/client";
 import { models } from "@/lib/ai/models";
 import { signInTestUser } from "./session";
 
 const CANDIDATES = (process.env.EVAL_CHAT_MODELS ?? models.chat).split(",");
 const TODAY = "2026-10-21";
-// Matches the chat route; EVAL_REASONING=default uses the provider's default.
-const REASONING = process.env.EVAL_REASONING === "default" ? undefined : ((process.env.EVAL_REASONING ?? "none") as "none" | "low");
+const REASONING = (process.env.EVAL_REASONING ?? "none") as "none" | "low";
 
 type Case = { q: string; expect?: string[]; forbidAllNames?: boolean };
 type Result = {
@@ -28,6 +27,9 @@ type Result = {
   citations?: number;
   tools?: string[];
   steps?: number;
+  inputTokens?: number;
+  cachedTokens?: number;
+  outputTokens?: number;
   answer?: string;
 };
 
@@ -81,12 +83,9 @@ describe("ask my network", () => {
           const started = Date.now();
           try {
             const r = await generateText({
-              model: chatModel(model, { reasoning: REASONING }),
-              instructions: askInstructions({ name: "Test User", today: TODAY, timeZone: "UTC" }),
+              ...askSettings({ name: "Test User", today: TODAY, timeZone: "UTC" }, { model, reasoning: REASONING }),
               prompt: c.q,
               tools: createAskTools(ctx),
-              stopWhen: isStepCount(6),
-              maxOutputTokens: 1500,
             });
             const text = r.text;
             const lower = text.toLowerCase();
@@ -103,6 +102,9 @@ describe("ask my network", () => {
               citations: cited.length,
               tools: r.steps.flatMap((s) => s.toolCalls.map((t) => t.toolName)),
               steps: r.steps.length,
+              inputTokens: r.totalUsage.inputTokens ?? 0,
+              cachedTokens: r.totalUsage.inputTokenDetails.cacheReadTokens ?? 0,
+              outputTokens: r.totalUsage.outputTokens ?? 0,
               costUsd: r.steps.reduce((sum, s) => sum + costOf(s), 0) + ctx.usage.reduce((sum, u) => sum + u.costUsd, 0),
               latencyMs: Date.now() - started,
               answer: text,
@@ -121,13 +123,20 @@ describe("ask my network", () => {
         accuracy: Number(((passed / CASES.length) * 100).toFixed(1)),
         avgCostUsd: Number((results.reduce((s, r) => s + r.costUsd, 0) / CASES.length).toFixed(5)),
         p50LatencyMs: latencies[Math.floor(latencies.length / 2)],
+        avgSteps: Number((results.reduce((s, r) => s + (r.steps ?? 0), 0) / CASES.length).toFixed(1)),
+        avgInputTokens: Math.round(results.reduce((s, r) => s + (r.inputTokens ?? 0), 0) / CASES.length),
+        avgCachedTokens: Math.round(results.reduce((s, r) => s + (r.cachedTokens ?? 0), 0) / CASES.length),
+        avgOutputTokens: Math.round(results.reduce((s, r) => s + (r.outputTokens ?? 0), 0) / CASES.length),
         failures: results
           .filter((r) => !r.ok)
           .map((r) => ({ q: r.q, ...(r.error ? { error: r.error } : { missing: r.missing, leaked: r.leaked, badCitations: r.badCitations, answer: r.answer }) })),
         results,
       };
       report.push(row);
-      console.log(`${model}: ${row.accuracy}% correct, $${row.avgCostUsd}/question, p50 ${row.p50LatencyMs}ms`);
+      console.log(
+        `${model}: ${row.accuracy}% correct, $${row.avgCostUsd}/question, p50 ${row.p50LatencyMs}ms, ` +
+          `${row.avgSteps} steps, ${row.avgInputTokens} in (${row.avgCachedTokens} cached), ${row.avgOutputTokens} out`,
+      );
       for (const f of row.failures) console.log("  ✗", JSON.stringify(f).slice(0, 600));
     }
 

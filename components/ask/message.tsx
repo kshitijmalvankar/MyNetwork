@@ -81,6 +81,7 @@ function activityOf(part: Part, key: string): Activity | null {
       const what = [part.input?.company, part.input?.roleFamily, part.input?.title, part.input?.event, part.input?.city, part.input?.name]
         .filter(Boolean)
         .join(", ");
+      if (part.input?.groupBy) return { ...base, icon: HashIcon, label: done ? `Counted ${plural(Number(part.output.total), "person", "people")}` : "Counting" };
       return {
         ...base,
         icon: SearchIcon,
@@ -91,8 +92,6 @@ function activityOf(part: Part, key: string): Activity | null {
       return { ...base, icon: FileTextIcon, label: done ? `Searched notes for “${part.input.query}”` : "Searching your notes" };
     case "tool-getContact":
       return { ...base, icon: UserIcon, label: done && "name" in part.output ? `Read ${part.output.name}'s details` : "Looking up details" };
-    case "tool-countContacts":
-      return { ...base, icon: HashIcon, label: done ? `Counted ${plural(Number(part.output.total), "person", "people")}` : "Counting" };
     case "tool-listFollowUps":
       if (!done) return { ...base, icon: BellIcon, label: "Checking follow-ups" };
       return {

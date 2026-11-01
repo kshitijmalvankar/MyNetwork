@@ -1,7 +1,7 @@
 {
   "model": "anthropic/claude-haiku-5.5",
   "settings": {},
-  "recordedOn": "2026-10-22",
+  "recordedOn": "2026-11-01",
   "key": "ac8c6a82a7d1219a9ba5446b4e045d56",
   "looseKey": "7ee35d1f18690670f66cec634918d814",
   "ids": [],
@@ -44,9 +44,9 @@
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 459,
+        "total": 488,
         "text": 208,
-        "reasoning": 251
+        "reasoning": 280
       }
     }
   }

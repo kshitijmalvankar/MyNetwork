@@ -3,22 +3,22 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-10-22",
+  "recordedOn": "2026-11-01",
   "key": "4c98cd8e2c452e6e8a048b798f58e3d1",
   "looseKey": "d05dcdfdcdad9e6006c8e5490b77ca3d",
   "ids": [
-    "986f640d-e4ae-4291-9856-b634df40e9fc",
-    "0d11795b-4270-4980-ae47-9f6cc66e23d4",
-    "0ad0329e-4370-4be6-863f-febb0bf9236a",
-    "21904f98-e8e2-4569-b802-6c4f27f72f7b",
-    "e1f8e427-24ac-41f3-8e25-9e01a52f81d3",
-    "4b1e32f5-df7e-4b1b-82c2-149e0d36500e",
-    "986fa2df-e3c8-4fe9-96fe-059188023f65",
-    "547a051c-9a6f-4752-8f62-c952365dbc9a",
-    "6bb688ac-b487-4342-a20f-d4d07c66a390",
-    "111e5bb5-a555-420b-bf59-e540e44b744f",
-    "a9f488d6-c093-4de6-b4ad-53edb1b3009e",
-    "fcd8692e-8836-4c97-89d8-830a6c862fe7"
+    "6f1eefb0-b12f-4f1c-9c15-dea447f4ba7f",
+    "4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5",
+    "8ad66c24-0286-4450-9e11-613fe4148b12",
+    "58fb5afb-c9e9-4b7e-afa1-2b84e6054265",
+    "c885c280-479f-48c4-b6d1-6f743c4eb528",
+    "d1eb257c-cd52-421f-bdb9-b395034e0aeb",
+    "68a6b274-289f-4913-a1a4-22ce6b8ff038",
+    "ea8f7fdd-6bde-480d-a2da-ae2aae61b5e9",
+    "7628e307-6700-44d8-87ee-33a90001def9",
+    "a147a599-bf04-455d-be7b-ccd0db8d9954",
+    "88d2917d-717e-4ff9-a58a-1c2e9a3a01a0",
+    "81be9380-4e3d-4126-ae1e-8bf2ebb7f667"
   ],
   "request": [
     {
@@ -39,7 +39,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Subject: Following up from TechSummit Mumbai\n\nHi Priya,\n\nIt was great meeting you at TechSummit Mumbai this September. Thanks for taking the time to chat about warehouse automation, and it's always good to talk with someone who's thinking carefully about where pilots fit.\n\nAs promised, here's our case study on pick-and-place robots. It walks through how the system performs in real warehouse settings and what teams typically look at when evaluating a pilot. Let me know if any part of it raises questions, or if there's a particular area you'd like to dig into further.\n\nThanks again, and I hope the rest of your time in Mumbai has been a good one.\n\nBest,\nAsha"
+        "text": "Subject: Thanks for the chat, and our pick-and-place case study\n\nHi Priya,\n\nIt was great meeting you at TechSummit Mumbai this year. I enjoyed hearing about your interest in warehouse automation pilots.\n\nAs promised, here is our case study on pick-and-place robots. I hope it gives you a useful picture of what a deployment looks like in practice.\n\nThanks again for taking the time to talk. Please let me know if any part of it raises questions.\n\nBest,\nAsha"
       }
     ],
     "finishReason": {
@@ -48,14 +48,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 1426,
-        "noCache": 1426,
+        "total": 1442,
+        "noCache": 1442,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 221,
-        "text": 221,
+        "total": 162,
+        "text": 162,
         "reasoning": 0
       }
     }

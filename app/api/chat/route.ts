@@ -3,15 +3,14 @@ import {
   convertToModelMessages,
   createIdGenerator,
   createUIMessageStreamResponse,
-  isStepCount,
   pruneMessages,
   safeValidateUIMessages,
   streamText,
   toUIMessageStream,
 } from "ai";
 import { z } from "zod";
-import { askInstructions, createAskTools, type AskContext, type AskUIMessage } from "@/lib/ai/ask";
-import { chatModel, costOf } from "@/lib/ai/client";
+import { askSettings, createAskTools, type AskContext, type AskUIMessage } from "@/lib/ai/ask";
+import { costOf } from "@/lib/ai/client";
 import { guardAiRequest, textError } from "@/lib/ai/guard";
 import { recordUsage, releaseQuota } from "@/lib/ai/metering";
 import { models } from "@/lib/ai/models";
@@ -61,7 +60,9 @@ export async function POST(request: NextRequest) {
   const tools = createAskTools(ctx);
 
   // Keep the last few turns. Earlier tool calls are dropped; the answers keep their links.
-  const recent = [...(history ?? []).filter((m) => m.id !== message.id).slice(-12), userMessage];
+  // Older threads can hold calls to a tool that has since been removed; validation would reject them.
+  const past = (history ?? []).filter((m) => m.id !== message.id).slice(-12);
+  const recent = [...past.map((m) => ({ ...m, parts: m.parts.filter((p) => (p.type as string) !== "tool-countContacts") })), userMessage];
   while (recent[0].role !== "user") recent.shift(); // a conversation must start with the user
   const validated = await safeValidateUIMessages<AskUIMessage>({ messages: recent, tools });
   const messages = validated.success ? validated.data : [userMessage];
@@ -73,13 +74,9 @@ export async function POST(request: NextRequest) {
   let released = false;
 
   const result = streamText({
-    // Reasoning off: same eval accuracy, about a third faster and cheaper.
-    model: chatModel(models.chat, { reasoning: "none" }),
-    instructions: askInstructions({ name: profile?.display_name, today: todayIn(timeZone), timeZone }),
+    ...askSettings({ name: profile?.display_name, today: todayIn(timeZone), timeZone }),
     messages: modelMessages,
     tools,
-    stopWhen: isStepCount(6),
-    maxOutputTokens: 1500,
     onEnd: async ({ steps, totalUsage }) => {
       await recordUsage(user.id, [
         {

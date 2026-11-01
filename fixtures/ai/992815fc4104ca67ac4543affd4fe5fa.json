@@ -3,8 +3,8 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-10-22",
-  "key": "2a239e04bd4c4cc5eaf5b3301d753ce4",
+  "recordedOn": "2026-11-01",
+  "key": "992815fc4104ca67ac4543affd4fe5fa",
   "looseKey": "c01fad8712a987668b5257b126daa8dd",
   "ids": [],
   "request": [
@@ -18,7 +18,7 @@
         {
           "type": "file",
           "mediaType": "audio/mp4",
-          "data": "a8290b27ce4fa78a1f64decb96977c8cee51c28e9bab7bdac401da3282865443"
+          "data": "38771d4cce682c235224b7bcb3325e71d6ec72434e003112a366cac4307f2da1"
         }
       ]
     }
@@ -27,7 +27,7 @@
     "content": [
       {
         "type": "text",
-        "text": "{\n  \"transcript\": \"Just had a great chat with Rahul at the Sound of Dinner. He is really interested in our HR analytics product. I promised to send him the demo video by next Friday. Oh, and he said his colleague, Anna, is hiring a data engineer. Just had a great chat with Rahul.\",\n  \"summary\": \"You had a positive meeting with Rahul Desai, who is interested in your HR analytics product. You committed to sharing a demo video with him soon.\",\n  \"language\": \"en\",\n  \"followUps\": [\n    {\n      \"action\": \"Send Rahul Desai the demo video\",\n      \"dueDate\": \"2026-10-30\"\n    }\n  ]\n}"
+        "text": "{\n  \"transcript\": \"Just had a great chat with Rahul at the sound of dinner. He is really interested in our HR analytics product. I promised to send him the demo video by next Friday. And he said his colleague Anna is hiring a data engineer.\",\n  \"summary\": \"You had a great conversation with Rahul Desai about your HR analytics product and he requested a demo video.\",\n  \"language\": \"en\",\n  \"followUps\": [\n    {\n      \"action\": \"Send Rahul the demo video\",\n      \"dueDate\": \"2026-11-06\"\n    }\n  ]\n}"
       }
     ],
     "finishReason": {
@@ -36,14 +36,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 967,
-        "noCache": 967,
+        "total": 968,
+        "noCache": 968,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 156,
-        "text": 156,
+        "total": 135,
+        "text": 135,
         "reasoning": 0
       }
     }

@@ -3,22 +3,22 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-10-22",
+  "recordedOn": "2026-11-01",
   "key": "6eda755cccc4f6af6076410e07323ca3",
   "looseKey": "93397650373c1a9183340a1ea7cd2379",
   "ids": [
-    "986f640d-e4ae-4291-9856-b634df40e9fc",
-    "0d11795b-4270-4980-ae47-9f6cc66e23d4",
-    "0ad0329e-4370-4be6-863f-febb0bf9236a",
-    "21904f98-e8e2-4569-b802-6c4f27f72f7b",
-    "e1f8e427-24ac-41f3-8e25-9e01a52f81d3",
-    "4b1e32f5-df7e-4b1b-82c2-149e0d36500e",
-    "986fa2df-e3c8-4fe9-96fe-059188023f65",
-    "547a051c-9a6f-4752-8f62-c952365dbc9a",
-    "6bb688ac-b487-4342-a20f-d4d07c66a390",
-    "111e5bb5-a555-420b-bf59-e540e44b744f",
-    "a9f488d6-c093-4de6-b4ad-53edb1b3009e",
-    "fcd8692e-8836-4c97-89d8-830a6c862fe7"
+    "6f1eefb0-b12f-4f1c-9c15-dea447f4ba7f",
+    "4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5",
+    "8ad66c24-0286-4450-9e11-613fe4148b12",
+    "58fb5afb-c9e9-4b7e-afa1-2b84e6054265",
+    "c885c280-479f-48c4-b6d1-6f743c4eb528",
+    "d1eb257c-cd52-421f-bdb9-b395034e0aeb",
+    "68a6b274-289f-4913-a1a4-22ce6b8ff038",
+    "ea8f7fdd-6bde-480d-a2da-ae2aae61b5e9",
+    "7628e307-6700-44d8-87ee-33a90001def9",
+    "a147a599-bf04-455d-be7b-ccd0db8d9954",
+    "88d2917d-717e-4ff9-a58a-1c2e9a3a01a0",
+    "81be9380-4e3d-4126-ae1e-8bf2ebb7f667"
   ],
   "request": [
     {
@@ -39,7 +39,7 @@
     "content": [
       {
         "type": "text",
-        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai.\n\n**How you know them**: You met Priya at TechSummit Mumbai 2026 on 19 Sep 2026, which is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- Her request for your case study on pick-and-place robots\n- Her love of trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she asked for. No due date is recorded.\n\n**Talking points**:\n- Follow up on the case study and ask whether she'd like to discuss a warehouse automation pilot.\n- Idea: mention the Himalayan trekking interest as a personal, low-pressure way to reconnect.\n\n**People in common**:\n- [Arjun Mehta](contact:0ad0329e-4370-4be6-863f-febb0bf9236a), VP Sales at Northwind Robotics\n- [Daniel Okafor](contact:21904f98-e8e2-4569-b802-6c4f27f72f7b), Staff Software Engineer at Northwind Robotics\n- [Mei Lin](contact:e1f8e427-24ac-41f3-8e25-9e01a52f81d3), Head of Design at Northwind Robotics"
+        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai, working in robotics.\n\n**How you know them**: You met Priya at [TechSummit Mumbai 2026](event:4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5) on 29 Sep 2026, and that is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- She asked for your case study on pick-and-place robots\n- She loves trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she requested. No due date is recorded.\n\n**Talking points**:\n- Follow up on the pick-and-place case study, and ask whether she has a warehouse automation pilot in mind.\n- If you're looking to explore a pilot, you could ask what scope or timeline she has in mind (an idea, not something from your notes).\n- Her Himalayan trekking could make a light opener for a re-connection (an idea).\n\n**People in common**:\n- [Arjun Mehta](contact:8ad66c24-0286-4450-9e11-613fe4148b12), VP Sales at Northwind Robotics\n- [Daniel Okafor](contact:58fb5afb-c9e9-4b7e-afa1-2b84e6054265), Staff Software Engineer at Northwind Robotics\n- [Mei Lin](contact:c885c280-479f-48c4-b6d1-6f743c4eb528), Head of Design at Northwind Robotics"
       }
     ],
     "finishReason": {
@@ -48,14 +48,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 1453,
-        "noCache": 1453,
+        "total": 1469,
+        "noCache": 1469,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 444,
-        "text": 444,
+        "total": 522,
+        "text": 522,
         "reasoning": 0
       }
     }
