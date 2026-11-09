@@ -505,6 +505,9 @@ isOneToOne: false
               "contact_id": string,"content_enc": string,"event_id": string,"id": string,"similarity": number,"source_id": string,"source_type": string
             }[]
                            },
+"merge_companies":
+{ Args: { "p_drop": (string)[],"p_keep": string,"p_user_id": string }; Returns: number
+                           },
 "mfa_required":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },

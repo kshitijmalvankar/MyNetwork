@@ -23,6 +23,7 @@ const ACTION_LABELS: Record<string, string> = {
   "auth.mfa_failed": "Two-factor code rejected",
   "auth.step_up": "Identity confirmed",
   "data.export": "Contacts downloaded",
+  "data.tidied": "Companies and industries tidied",
   "contact.deleted": "Contact deleted",
   "contact.merged": "Contacts merged",
 };

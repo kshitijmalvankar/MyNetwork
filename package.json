@@ -23,6 +23,7 @@
     "cron": "node scripts/cron.mjs",
     "dev:upload-fixtures": "node scripts/upload-fixtures.mjs",
     "seed:network": "tsx --conditions=react-server --env-file=.env.local scripts/seed-network.ts",
+    "data:tidy": "tsx --conditions=react-server --env-file=.env.local scripts/tidy-network.ts",
     "reindex": "tsx --conditions=react-server --env-file=.env.local scripts/reindex.ts",
     "rotate:master-key": "tsx --conditions=react-server --env-file=.env.local scripts/rotate-master-key.ts",
     "icons": "node scripts/make-icons.mjs"

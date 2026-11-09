@@ -70,7 +70,8 @@ pnpm seed:network --large
 | `pnpm eval [extract\|ask\|brief\|voice\|insights]` | Live AI quality checks on fictional data; costs a few cents. Results are in [evals/results/summary.md](evals/results/summary.md). |
 | `pnpm db:push`, `pnpm db:types` | Apply migrations; regenerate database types |
 | `pnpm seed:dev [--clean]` | Create or remove test accounts on `example.com` addresses |
-| `pnpm seed:network` | Load the fictional network into the test account |
+| `pnpm seed:network [--large]` | Load a fictional network into a test account |
+| `pnpm data:tidy <email> [--apply]` | Merge spellings of the same company and move industries onto the shared list. Shows the changes first and makes them only with `--apply`. |
 | `pnpm cron <job>` | Run a scheduled job against the local server |
 | `pnpm reindex` | Rebuild search after changing the embedding model |
 | `pnpm rotate:master-key [--apply]` | Re-wrap user keys after rotating the master key |
