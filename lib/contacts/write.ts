@@ -7,6 +7,7 @@ import { blindIndex, normalizeEmail } from "@/lib/crypto/blind-index";
 import { openField, openJson, sealField, sealJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { companyKey, findCompanyMatch } from "@/lib/companies";
+import type { PastJob } from "@/lib/connections";
 import { canonicalIndustry } from "@/lib/industries";
 import { suggestFromNote } from "@/lib/suggestions";
 import { fromBytea, toBytea } from "@/lib/supabase/bytea";
@@ -31,7 +32,7 @@ export type MeetingDetails = {
 
 export type CardImageRef = { side: "front" | "back"; path: string; thumbPath?: string | null };
 
-export type ContactInput = ReviewedCard & { nameNative?: string; titleNative?: string | null; language?: string; industryOverride?: string };
+export type ContactInput = ReviewedCard & { nameNative?: string; titleNative?: string | null; language?: string; industryOverride?: string; pastPositions?: PastJob[] };
 
 const contactCtx = (userId: string, contactId: string, column: string) => ({ userId, table: "contacts", column, rowId: contactId });
 
@@ -236,8 +237,9 @@ async function loadExisting(supabase: Supabase, contactId: string) {
   return data as ExistingContact | null;
 }
 
-function withPastPosition(existing: ExistingContact, newCompanyId: string | null, today: string) {
-  const past = (Array.isArray(existing.past_positions) ? existing.past_positions : []) as { company: string | null; title: string | null; until: string }[];
+/** The past jobs to keep: `edited` when the user changed them, plus the old job when the company changes. */
+function withPastPosition(existing: ExistingContact, newCompanyId: string | null, today: string, edited?: PastJob[]) {
+  const past = edited ?? ((Array.isArray(existing.past_positions) ? existing.past_positions : []) as PastJob[]);
   if (existing.company_id && newCompanyId !== existing.company_id) {
     return [{ company: existing.companies?.name ?? null, title: existing.title, until: today }, ...past].slice(0, 20);
   }
@@ -270,7 +272,7 @@ export async function updateContactDetails(userId: string, contactId: string, ca
       emails_enc: emails.length ? toBytea(sealJson(dek, emails, ctx("emails_enc"))) : null,
       phones_enc: phones.length ? toBytea(sealJson(dek, phones, ctx("phones_enc"))) : null,
       address_enc: card.address ? toBytea(sealField(dek, card.address, ctx("address_enc"))) : null,
-      past_positions: withPastPosition(existing, companyId, new Date().toISOString().slice(0, 10)),
+      past_positions: withPastPosition(existing, companyId, new Date().toISOString().slice(0, 10), card.pastPositions),
     })
     .eq("id", contactId);
   if (error) throw error;

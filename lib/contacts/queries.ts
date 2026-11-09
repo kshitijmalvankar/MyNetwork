@@ -1,4 +1,5 @@
 import "server-only";
+import type { PastJob } from "@/lib/connections";
 import { z } from "zod";
 import { openField, openJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
@@ -121,7 +122,7 @@ export type ContactDetail = {
   emails: string[];
   phones: string[];
   address: string | null;
-  pastPositions: { company: string | null; title: string | null; until: string }[];
+  pastPositions: PastJob[];
   lastContactedAt: string | null;
   createdAt: string;
   images: { id: string; side: "front" | "back" }[];

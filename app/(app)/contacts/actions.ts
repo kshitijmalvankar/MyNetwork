@@ -40,6 +40,12 @@ const refresh = (contactId?: string) => {
 const editSchema = reviewedCardSchema.extend({
   nameNative: z.string().trim().max(200).optional().default(""),
   industryOverride: z.string().trim().max(80).optional().default(""),
+  // Until is a month ("2024-06") when typed in, or a full date when recorded on a company change.
+  pastPositions: z
+    .array(z.object({ company: z.string().trim().max(200), title: z.string().trim().max(200), until: z.string().regex(/^(\d{4}-\d{2}(-\d{2})?)?$/, "Use a month for when they left") }))
+    .max(20)
+    .optional()
+    .transform((jobs) => jobs?.filter((j) => j.company || j.title).map((j) => ({ company: j.company || null, title: j.title || null, until: j.until || null }))),
 });
 
 export async function editContact(contactId: string, input: z.input<typeof editSchema>): Promise<Result> {

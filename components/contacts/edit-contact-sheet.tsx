@@ -6,6 +6,7 @@ import { PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { editContact } from "@/app/(app)/contacts/actions";
 import { IndustrySelect } from "@/components/contacts/industry-select";
+import { PastJobsEditor } from "@/components/contacts/past-jobs-editor";
 import { ListEditor } from "@/components/review/list-editor";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
@@ -35,6 +36,7 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
     country: contact.country ?? "",
     roleFamily: (contact.roleFamily ?? "Other") as RoleFamily,
     seniority: (contact.seniority ?? "Mid") as Seniority,
+    pastPositions: contact.pastPositions.map((p) => ({ company: p.company ?? "", title: p.title ?? "", until: p.until?.slice(0, 7) ?? "" })),
   });
   const [form, setForm] = useState(initial);
   const set = <K extends keyof ReturnType<typeof initial>>(k: K, v: ReturnType<typeof initial>[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -131,6 +133,10 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
                 onChange={(v) => set("industryOverride", v)}
                 emptyLabel={form.industry ? `Same as company (${form.industry})` : "Same as company"}
               />
+            </Field>
+            <Field>
+              <FieldLabel>Past jobs</FieldLabel>
+              <PastJobsEditor values={form.pastPositions} onChange={(v) => set("pastPositions", v)} />
             </Field>
             <FieldSeparator />
             <Field>

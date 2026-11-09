@@ -85,7 +85,7 @@ export function personContextText({ contact: c, related }: PersonContext): strin
   const place = [c.city, countryName(c.country)].filter(Boolean).join(", ");
   if (place) lines.push(`Based in: ${place}`);
   if (c.website) lines.push(`Website: ${c.website}`);
-  for (const p of c.pastPositions.slice(0, 5)) lines.push(`Previously: ${[p.title, p.company && `at ${p.company}`].filter(Boolean).join(" ")} (until ${p.until})`);
+  for (const p of c.pastPositions.slice(0, 5)) lines.push(`Previously: ${[p.title, p.company && `at ${p.company}`].filter(Boolean).join(" ")} ${p.until ? ` (until ${p.until})` : ""}`);
   lines.push(`Added to network: ${day(c.createdAt)}`);
   if (c.lastContactedAt) lines.push(`Last contact: ${day(c.lastContactedAt)}`);
 

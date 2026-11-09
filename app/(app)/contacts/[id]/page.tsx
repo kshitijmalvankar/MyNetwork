@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import { loadPersonContext } from "@/lib/ai/brief";
 import { quotaStatus } from "@/lib/ai/metering";
 import { getProfile, requireUser } from "@/lib/auth/dal";
-import { formatDay, todayIn } from "@/lib/dates";
+import { untilLabel } from "@/lib/connections";
+import { todayIn } from "@/lib/dates";
 import { getSuggestions } from "@/lib/suggestions";
 import { personHue, timeAgo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -200,7 +201,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
                       {p.title ? <BriefcaseIcon className="mt-0.5 size-4 text-muted-foreground" /> : <Building2Icon className="mt-0.5 size-4 text-muted-foreground" />}
                       <div>
                         <p>{[p.title, p.company].filter(Boolean).join(" at ") || "Unknown role"}</p>
-                        <p className="text-xs text-muted-foreground">until {formatDay(p.until)}</p>
+                        {p.until && <p className="text-xs text-muted-foreground">until {untilLabel(p.until)}</p>}
                       </div>
                     </li>
                   ))}

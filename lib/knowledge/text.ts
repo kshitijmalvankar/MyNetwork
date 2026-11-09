@@ -25,7 +25,7 @@ export type ProfileInput = {
   city?: string | null;
   country?: string | null;
   website?: string | null;
-  pastPositions?: { company: string | null; title: string | null; until: string }[];
+  pastPositions?: { company: string | null; title: string | null; until: string | null }[];
   meetings?: { type: string; on: string; event?: string | null; location?: string | null }[];
   reminders?: { due: string; note?: string | null }[];
 };
@@ -55,7 +55,7 @@ export function profileText(p: ProfileInput): string {
     lines.push(
       `Previously: ${p.pastPositions
         .slice(0, 5)
-        .map((pp) => join([pp.title, pp.company && `at ${pp.company}`, `(until ${pp.until})`], " "))
+        .map((pp) => join([pp.title, pp.company && `at ${pp.company}`, pp.until && `(until ${pp.until})`], " "))
         .join("; ")}`,
     );
   }
