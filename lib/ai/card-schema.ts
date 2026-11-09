@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { INDUSTRIES } from "@/lib/industries";
 
 export const ROLE_FAMILIES = [
   "Engineering",
@@ -51,7 +52,7 @@ export const cardExtractionSchema = z.object({
   language: z.string().describe("ISO 639-1 code of the main non-English script on the card, or 'en'"),
   roleFamily: z.enum(ROLE_FAMILIES),
   seniority: z.enum(SENIORITIES),
-  industry: z.string().nullable().describe("Short industry label such as Software, Healthcare, Fintech, Robotics"),
+  industry: z.enum(INDUSTRIES).nullable().describe("The company's industry, judged from its name, the title and anything else on the card"),
   confidence: z.object({ fullName: confidence, title: confidence, company: confidence, contact: confidence }),
 });
 

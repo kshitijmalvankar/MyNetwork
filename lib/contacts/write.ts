@@ -6,6 +6,8 @@ import { normalizeCompanyName, normalizePhone, normalizeWebsite } from "@/lib/ai
 import { blindIndex, normalizeEmail } from "@/lib/crypto/blind-index";
 import { openField, openJson, sealField, sealJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
+import { companyKey, findCompanyMatch } from "@/lib/companies";
+import { canonicalIndustry } from "@/lib/industries";
 import { suggestFromNote } from "@/lib/suggestions";
 import { fromBytea, toBytea } from "@/lib/supabase/bytea";
 import type { Database } from "@/lib/supabase/database.types";
@@ -41,7 +43,10 @@ export function normalizeContactDetails(card: Pick<ContactInput, "emails" | "pho
   };
 }
 
-/** Finds the user's company by normalized name, creating it if needed. */
+/** A label from the shared industry list where one fits; anything else is kept as given. */
+export const industryLabel = (value: string | null | undefined) => (value?.trim() ? (canonicalIndustry(value) ?? value.trim()) : null);
+
+/** Finds the user's company under any spelling of its name (see lib/companies.ts), creating it if needed. */
 export async function upsertCompany(
   supabase: Supabase,
   userId: string,
@@ -51,22 +56,30 @@ export async function upsertCompany(
   const normalized = normalizeCompanyName(name);
   if (!normalized) return null;
 
-  const { data: existing } = await supabase.from("companies").select("id, domain, industry").eq("normalized_name", normalized).maybeSingle();
   const emailDomain = hints.email?.split("@")[1]?.toLowerCase();
   const domain = hints.website ?? (emailDomain && !FREE_MAIL.has(emailDomain) ? emailDomain : null);
+  const industry = industryLabel(hints.industry);
+
+  // Anything that could be the same company: a name containing the same core, or the same domain.
+  type Row = { id: string; name: string; domain: string | null; industry: string | null };
+  const [{ data: byName }, { data: byDomain }] = await Promise.all([
+    supabase.from("companies").select("id, name, domain, industry").ilike("normalized_name", `%${companyKey(name)}%`).limit(50),
+    domain ? supabase.from("companies").select("id, name, domain, industry").eq("domain", domain).limit(20) : Promise.resolve({ data: [] as Row[] }),
+  ]);
+  const existing = findCompanyMatch<Row>([...(byName ?? []), ...(byDomain ?? [])], { name, domain });
 
   if (existing) {
     // Fill gaps; never overwrite what the user already has.
     const patch: { domain?: string; industry?: string } = {};
     if (!existing.domain && domain) patch.domain = domain;
-    if (!existing.industry && hints.industry) patch.industry = hints.industry;
+    if (!existing.industry && industry) patch.industry = industry;
     if (Object.keys(patch).length) await supabase.from("companies").update(patch).eq("id", existing.id);
     return existing.id;
   }
 
   const { data, error } = await supabase
     .from("companies")
-    .insert({ user_id: userId, name: name.trim(), normalized_name: normalized, domain, industry: hints.industry || null })
+    .insert({ user_id: userId, name: name.trim(), normalized_name: normalized, domain, industry })
     .select("id")
     .single();
   if (error?.code === "23505") {
@@ -189,7 +202,7 @@ export async function createContact(userId: string, card: ContactInput, meeting:
     country: card.country || null,
     role_family: card.roleFamily,
     seniority: card.seniority,
-    industry_override: card.industryOverride || null,
+    industry_override: industryLabel(card.industryOverride),
     emails_enc: emails.length ? toBytea(sealJson(dek, emails, ctx("emails_enc"))) : null,
     phones_enc: phones.length ? toBytea(sealJson(dek, phones, ctx("phones_enc"))) : null,
     address_enc: card.address ? toBytea(sealField(dek, card.address, ctx("address_enc"))) : null,
@@ -253,7 +266,7 @@ export async function updateContactDetails(userId: string, contactId: string, ca
       country: card.country || null,
       role_family: card.roleFamily,
       seniority: card.seniority,
-      industry_override: card.industryOverride || null,
+      industry_override: industryLabel(card.industryOverride),
       emails_enc: emails.length ? toBytea(sealJson(dek, emails, ctx("emails_enc"))) : null,
       phones_enc: phones.length ? toBytea(sealJson(dek, phones, ctx("phones_enc"))) : null,
       address_enc: card.address ? toBytea(sealField(dek, card.address, ctx("address_enc"))) : null,

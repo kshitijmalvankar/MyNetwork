@@ -9,6 +9,7 @@ import type { UsageEntry } from "@/lib/ai/metering";
 import { models } from "@/lib/ai/models";
 import { normalizeCompanyName } from "@/lib/ai/validate";
 import { getContactDetail } from "@/lib/contacts/queries";
+import { canonicalIndustry } from "@/lib/industries";
 import { openField } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { chunkField } from "@/lib/knowledge/indexer";
@@ -119,7 +120,8 @@ async function findContacts(supabase: Supabase, f: Filters, limit: number) {
     p_title: f.title,
     p_role_family: f.roleFamily,
     p_seniority: f.seniority,
-    p_industry: f.industry,
+    // "venture capital" finds people filed under Investment.
+    p_industry: f.industry ? (canonicalIndustry(f.industry) ?? f.industry) : undefined,
     p_city: f.city,
     p_country: toCountryCode(f.country),
     p_event: f.event,
