@@ -1,6 +1,7 @@
-// Creates (or removes, with --clean) the local test account defined by
-// E2E_TEST_EMAIL / E2E_TEST_PASSWORD in .env.local. Only touches accounts on
-// reserved example domains, so it is safe to run against the shared project.
+// Creates (or removes, with --clean) the local test accounts: E2E_TEST_EMAIL,
+// and the same address with "+network" added for the large network, both with
+// E2E_TEST_PASSWORD from .env.local. Only touches accounts on reserved example
+// domains, so it is safe to run against the shared project.
 import { createClient } from "@supabase/supabase-js";
 
 process.loadEnvFile?.(".env.local");
@@ -39,19 +40,20 @@ if (process.argv.includes("--clean")) {
   }
   console.log(`Removed ${users.length} test account(s).`);
 } else {
-  const existing = (await findTestUsers()).find((u) => u.email === email.toLowerCase());
-  if (existing) {
-    const { error } = await admin.auth.admin.updateUserById(existing.id, { password, email_confirm: true });
-    if (error) throw error;
-    console.log("Test account already exists; password reset to the one in .env.local.");
-  } else {
-    const { error } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { display_name: "Test User" },
-    });
-    if (error) throw error;
-    console.log("Created confirmed test account (see E2E_TEST_EMAIL in .env.local).");
+  const users = await findTestUsers();
+  for (const [address, name] of [
+    [email, "Test User"],
+    [email.replace("@", "+network@"), "Asha Rao"],
+  ]) {
+    const existing = users.find((u) => u.email === address.toLowerCase());
+    if (existing) {
+      const { error } = await admin.auth.admin.updateUserById(existing.id, { password, email_confirm: true });
+      if (error) throw error;
+      console.log(`${address} already exists; password reset to E2E_TEST_PASSWORD.`);
+    } else {
+      const { error } = await admin.auth.admin.createUser({ email: address, password, email_confirm: true, user_metadata: { display_name: name } });
+      if (error) throw error;
+      console.log(`Created ${address} (password: E2E_TEST_PASSWORD in .env.local).`);
+    }
   }
 }

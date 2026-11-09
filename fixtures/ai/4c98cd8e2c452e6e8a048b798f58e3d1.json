@@ -3,22 +3,22 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-11-01",
+  "recordedOn": "2026-11-09",
   "key": "4c98cd8e2c452e6e8a048b798f58e3d1",
   "looseKey": "d05dcdfdcdad9e6006c8e5490b77ca3d",
   "ids": [
-    "6f1eefb0-b12f-4f1c-9c15-dea447f4ba7f",
-    "4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5",
-    "8ad66c24-0286-4450-9e11-613fe4148b12",
-    "58fb5afb-c9e9-4b7e-afa1-2b84e6054265",
-    "c885c280-479f-48c4-b6d1-6f743c4eb528",
-    "d1eb257c-cd52-421f-bdb9-b395034e0aeb",
-    "68a6b274-289f-4913-a1a4-22ce6b8ff038",
-    "ea8f7fdd-6bde-480d-a2da-ae2aae61b5e9",
-    "7628e307-6700-44d8-87ee-33a90001def9",
-    "a147a599-bf04-455d-be7b-ccd0db8d9954",
-    "88d2917d-717e-4ff9-a58a-1c2e9a3a01a0",
-    "81be9380-4e3d-4126-ae1e-8bf2ebb7f667"
+    "aeda37ee-7935-4dee-9008-49813d3964be",
+    "9c21a39d-4f63-4005-8b0e-46ec1128ae48",
+    "dadd2b00-e13e-4dcb-a7ae-d9152dbf9f9e",
+    "f742f634-c8c8-4242-939c-f637cb4af333",
+    "a67718bf-b52c-40c3-9a8b-9555dd366d03",
+    "85c0ec19-bc0c-4aec-a3a3-8a5b8be87c03",
+    "9ad8887a-db73-4683-ab24-5cd9d4c01fb9",
+    "17dbb7bb-05b0-4420-a7d9-eef6c96a576a",
+    "8ad7ecd6-f7b8-4224-806d-2fa5b5481474",
+    "628f7d8d-6676-4dec-99cc-7befdc72e608",
+    "89feb63c-e87f-43ce-a7c0-7dc79655e144",
+    "c3e1e43c-e354-4de5-a7b8-a16db545e0e8"
   ],
   "request": [
     {
@@ -39,7 +39,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Subject: Thanks for the chat, and our pick-and-place case study\n\nHi Priya,\n\nIt was great meeting you at TechSummit Mumbai this year. I enjoyed hearing about your interest in warehouse automation pilots.\n\nAs promised, here is our case study on pick-and-place robots. I hope it gives you a useful picture of what a deployment looks like in practice.\n\nThanks again for taking the time to talk. Please let me know if any part of it raises questions.\n\nBest,\nAsha"
+        "text": "Subject: Thanks for the chat, and our pick-and-place case study\n\nHi Priya,\n\nIt was great meeting you at TechSummit Mumbai in October. I enjoyed our conversation about warehouse automation pilots.\n\nAs promised, here is our case study on pick-and-place robots. I hope it gives you a useful look at how teams have approached these deployments.\n\nThanks again for your time, and I hope you're able to enjoy some trekking in the Himalayas soon.\n\nBest,\nAsha"
       }
     ],
     "finishReason": {
@@ -48,14 +48,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 1442,
-        "noCache": 1442,
+        "total": 1440,
+        "noCache": 1440,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 162,
-        "text": 162,
+        "total": 163,
+        "text": 163,
         "reasoning": 0
       }
     }

@@ -3,7 +3,7 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-11-01",
+  "recordedOn": "2026-11-09",
   "key": "19c9265b7b093baa7bc5b899e3ddff95",
   "looseKey": "86e097ee040a2b6ff602c145c12d7eed",
   "ids": [],
@@ -30,7 +30,7 @@
     "content": [
       {
         "type": "tool-call",
-        "toolCallId": "toolu_vrtx_01EJP9K2NZzBkWYZN2gzxKq6",
+        "toolCallId": "toolu_bdrk_014CPbHtRwSsVXCG9JXuxDDD",
         "toolName": "findContacts",
         "input": "{\"company\": \"Northwind Robotics\"}"
       }
@@ -42,9 +42,9 @@
     "usage": {
       "inputTokens": {
         "total": 3733,
-        "noCache": 3733,
-        "cacheRead": 0,
-        "cacheWrite": 3610
+        "noCache": 123,
+        "cacheRead": 3610,
+        "cacheWrite": 0
       },
       "outputTokens": {
         "total": 55,

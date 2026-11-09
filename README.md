@@ -48,11 +48,12 @@ pnpm dev
 
 The app runs at http://localhost:3000. Configure Supabase's auth settings once, as described in [docs/supabase-setup.md](docs/supabase-setup.md).
 
-To try it with sample data, create the test account defined by `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` in `.env.local`, then load a fictional network of 32 people:
+To try it with sample data, create the test accounts from `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` in `.env.local`, then load a fictional network. There are two: 32 people, which the Ask eval checks answers against, or about 500 generated people for trying the graph and how the app copes at size. The large one goes into the same address with `+network` added, for example `test+network@example.com`, with the same password.
 
 ```bash
 pnpm seed:dev
 pnpm seed:network
+pnpm seed:network --large
 ```
 
 ## Scripts

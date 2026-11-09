@@ -3,22 +3,22 @@
   "settings": {
     "reasoning": "none"
   },
-  "recordedOn": "2026-11-01",
+  "recordedOn": "2026-11-09",
   "key": "6eda755cccc4f6af6076410e07323ca3",
   "looseKey": "93397650373c1a9183340a1ea7cd2379",
   "ids": [
-    "6f1eefb0-b12f-4f1c-9c15-dea447f4ba7f",
-    "4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5",
-    "8ad66c24-0286-4450-9e11-613fe4148b12",
-    "58fb5afb-c9e9-4b7e-afa1-2b84e6054265",
-    "c885c280-479f-48c4-b6d1-6f743c4eb528",
-    "d1eb257c-cd52-421f-bdb9-b395034e0aeb",
-    "68a6b274-289f-4913-a1a4-22ce6b8ff038",
-    "ea8f7fdd-6bde-480d-a2da-ae2aae61b5e9",
-    "7628e307-6700-44d8-87ee-33a90001def9",
-    "a147a599-bf04-455d-be7b-ccd0db8d9954",
-    "88d2917d-717e-4ff9-a58a-1c2e9a3a01a0",
-    "81be9380-4e3d-4126-ae1e-8bf2ebb7f667"
+    "aeda37ee-7935-4dee-9008-49813d3964be",
+    "9c21a39d-4f63-4005-8b0e-46ec1128ae48",
+    "dadd2b00-e13e-4dcb-a7ae-d9152dbf9f9e",
+    "f742f634-c8c8-4242-939c-f637cb4af333",
+    "a67718bf-b52c-40c3-9a8b-9555dd366d03",
+    "85c0ec19-bc0c-4aec-a3a3-8a5b8be87c03",
+    "9ad8887a-db73-4683-ab24-5cd9d4c01fb9",
+    "17dbb7bb-05b0-4420-a7d9-eef6c96a576a",
+    "8ad7ecd6-f7b8-4224-806d-2fa5b5481474",
+    "628f7d8d-6676-4dec-99cc-7befdc72e608",
+    "89feb63c-e87f-43ce-a7c0-7dc79655e144",
+    "c3e1e43c-e354-4de5-a7b8-a16db545e0e8"
   ],
   "request": [
     {
@@ -39,7 +39,7 @@
     "content": [
       {
         "type": "text",
-        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai, working in robotics.\n\n**How you know them**: You met Priya at [TechSummit Mumbai 2026](event:4eb2c184-5518-4fa0-8f3a-7cbf7e3eefd5) on 29 Sep 2026, and that is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- She asked for your case study on pick-and-place robots\n- She loves trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she requested. No due date is recorded.\n\n**Talking points**:\n- Follow up on the pick-and-place case study, and ask whether she has a warehouse automation pilot in mind.\n- If you're looking to explore a pilot, you could ask what scope or timeline she has in mind (an idea, not something from your notes).\n- Her Himalayan trekking could make a light opener for a re-connection (an idea).\n\n**People in common**:\n- [Arjun Mehta](contact:8ad66c24-0286-4450-9e11-613fe4148b12), VP Sales at Northwind Robotics\n- [Daniel Okafor](contact:58fb5afb-c9e9-4b7e-afa1-2b84e6054265), Staff Software Engineer at Northwind Robotics\n- [Mei Lin](contact:c885c280-479f-48c4-b6d1-6f743c4eb528), Head of Design at Northwind Robotics"
+        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai.\n\n**How you know them**: You met Priya at TechSummit Mumbai 2026 on 7 Oct 2026, and that is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- Her request for your case study on pick-and-place robots\n- Her love of trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she asked for. No due date is recorded.\n\n**Talking points**:\n- Follow up on the pick-and-place case study and ask whether she has a particular warehouse use case in mind for a pilot.\n- Idea: ask what her team is currently evaluating for warehouse automation, to see whether a pilot could fit.\n- Idea: a light personal touch, such as asking about her Himalayan trekking, could help rebuild rapport since you have only one prior interaction.\n\n**People in common**:\n- [Arjun Mehta](contact:dadd2b00-e13e-4dcb-a7ae-d9152dbf9f9e), VP Sales at Northwind Robotics\n- [Mei Lin](contact:a67718bf-b52c-40c3-9a8b-9555dd366d03), Head of Design at Northwind Robotics\n- [Daniel Okafor](contact:f742f634-c8c8-4242-939c-f637cb4af333), Staff Software Engineer at Northwind Robotics"
       }
     ],
     "finishReason": {
@@ -48,14 +48,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 1469,
-        "noCache": 1469,
+        "total": 1467,
+        "noCache": 1467,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 522,
-        "text": 522,
+        "total": 503,
+        "text": 503,
         "reasoning": 0
       }
     }
