@@ -1,15 +1,21 @@
 // Turns the network into graph nodes and links. Pure and client-safe, so the
 // view can rebuild instantly when toggles or filters change.
+import { employerResolver } from "@/lib/connections";
 import type { GraphData } from "@/lib/graph";
 
 export type Person = GraphData["people"][number];
-export type NodeKind = "person" | "company" | "event";
-export type LinkKind = "works" | "met" | "similar";
+export type NodeKind = "person" | "company" | "event" | "place";
+/** works/worked: a job now or in the past; met: at an event; lives: in a city; knows/introduced: stated by the user. */
+export type LinkKind = "works" | "worked" | "met" | "lives" | "knows" | "introduced" | "similar";
+/** Links to a company, event or place, as opposed to between two people. */
+export const HUB_LINKS = new Set<LinkKind>(["works", "worked", "met", "lives"]);
 
 export type GraphNode = { id: string; kind: NodeKind; label: string; size: number; x?: number; y?: number };
 export type GraphLink = { source: string; target: string; kind: LinkKind; score?: number };
 
-export type GraphOptions = { companies: boolean; events: boolean; similar: boolean };
+export type GraphOptions = { companies: boolean; events: boolean; places: boolean; ties: boolean; similar: boolean };
+
+export const placeId = (p: Pick<Person, "city" | "country">) => `place:${p.city}|${p.country ?? ""}`;
 export type GraphFilters = { roleFamily?: string; seniority?: string; industry?: string; country?: string; query?: string };
 
 /** Similar-background links drawn on the map: each person's closest few, above this score. */
@@ -21,13 +27,30 @@ export function buildGraph(data: GraphData, options: GraphOptions): { nodes: Gra
   const links: GraphLink[] = [];
 
   if (options.companies) {
+    // Past jobs link to the same company node as current ones, so former colleagues meet there.
+    const resolve = employerResolver(data.companies);
     const counts = new Map<string, number>();
-    for (const p of data.people) if (p.companyId) counts.set(p.companyId, (counts.get(p.companyId) ?? 0) + 1);
+    const pastOnly = new Map<string, string>();
+    for (const p of data.people) {
+      if (p.companyId) {
+        counts.set(p.companyId, (counts.get(p.companyId) ?? 0) + 1);
+        links.push({ source: p.id, target: p.companyId, kind: "works" });
+      }
+      const seen = new Set<string>();
+      for (const name of p.pastCompanies) {
+        const employer = resolve(name);
+        if (!employer || employer.id === p.companyId || seen.has(employer.id)) continue;
+        seen.add(employer.id);
+        counts.set(employer.id, (counts.get(employer.id) ?? 0) + 1);
+        if (employer.id.startsWith("past:")) pastOnly.set(employer.id, employer.name);
+        links.push({ source: p.id, target: employer.id, kind: "worked" });
+      }
+    }
     for (const c of data.companies) {
       const n = counts.get(c.id);
       if (n) nodes.push({ id: c.id, kind: "company", label: c.name, size: n });
     }
-    for (const p of data.people) if (p.companyId && counts.has(p.companyId)) links.push({ source: p.id, target: p.companyId, kind: "works" });
+    for (const [id, name] of pastOnly) nodes.push({ id, kind: "company", label: name, size: counts.get(id) ?? 1 });
   }
 
   if (options.events) {
@@ -38,6 +61,18 @@ export function buildGraph(data: GraphData, options: GraphOptions): { nodes: Gra
       if (n) nodes.push({ id: e.id, kind: "event", label: e.name, size: n });
     }
     for (const [p, e] of data.metAt) if (counts.has(e)) links.push({ source: p, target: e, kind: "met" });
+  }
+
+  if (options.places) {
+    // A place only helps when it brings at least two people together.
+    const counts = new Map<string, number>();
+    for (const p of data.people) if (p.city) counts.set(placeId(p), (counts.get(placeId(p)) ?? 0) + 1);
+    for (const [id, n] of counts) if (n >= 2) nodes.push({ id, kind: "place", label: id.slice(6).split("|")[0], size: n });
+    for (const p of data.people) if (p.city && (counts.get(placeId(p)) ?? 0) >= 2) links.push({ source: p.id, target: placeId(p), kind: "lives" });
+  }
+
+  if (options.ties) {
+    for (const l of data.links) links.push({ source: l.contactId, target: l.otherId, kind: l.kind === "knows" ? "knows" : "introduced" });
   }
 
   if (options.similar) {

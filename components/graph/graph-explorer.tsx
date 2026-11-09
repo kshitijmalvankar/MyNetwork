@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, MaximizeIcon, MessageCircleIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
+import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, MapPinIcon, MaximizeIcon, MessageCircleIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
 import { ForceCanvas, KIND_COLORS, type ForceCanvasHandle } from "@/components/graph/force-canvas";
 import { PersonAvatar } from "@/components/contacts/person-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatDay } from "@/lib/dates";
 import { timeAgo } from "@/lib/format";
 import type { GraphData } from "@/lib/graph";
-import { buildGraph, matchingPeople, similarTo, type GraphFilters, type GraphOptions, type NodeKind } from "@/lib/graph-model";
+import { employerResolver, formerColleagues, statedFrom, type WorkedTogether } from "@/lib/connections";
+import { buildGraph, HUB_LINKS, matchingPeople, placeId, similarTo, type GraphFilters, type GraphOptions, type NodeKind } from "@/lib/graph-model";
 import { cn } from "@/lib/utils";
 
 const ANY = "__any";
@@ -45,7 +46,7 @@ function useWide() {
 }
 
 function KindIcon({ kind, className }: { kind: NodeKind; className?: string }) {
-  const Icon = kind === "person" ? UserIcon : kind === "company" ? Building2Icon : CalendarDaysIcon;
+  const Icon = kind === "person" ? UserIcon : kind === "company" ? Building2Icon : kind === "place" ? MapPinIcon : CalendarDaysIcon;
   return <Icon className={className} />;
 }
 
@@ -54,15 +55,24 @@ function Legend() {
     ["person", "People", "rounded-full"],
     ["company", "Companies", "rounded-[3px]"],
     ["event", "Events", "rotate-45 rounded-[2px]"],
+    ["place", "Places", "[clip-path:polygon(50%_0,100%_100%,0_100%)]"],
   ];
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
+    <div className="pointer-events-none absolute right-3 bottom-3 left-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur sm:right-auto">
       {items.map(([kind, label, shape]) => (
         <span key={kind} className="flex items-center gap-1.5">
           <span className={cn("inline-block size-2.5 bg-[var(--c)] dark:bg-[var(--cd)]", shape)} style={{ "--c": KIND_COLORS.light[kind], "--cd": KIND_COLORS.dark[kind] } as React.CSSProperties} />
           {label}
         </span>
       ))}
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-4 border-t border-dotted border-muted-foreground" />
+        Past job
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-4 border-t-2 border-brand" />
+        Know each other
+      </span>
       <span className="flex items-center gap-1.5">
         <span className="inline-block w-4 border-t border-dashed border-muted-foreground" />
         Similar background
@@ -100,13 +110,31 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Details({ selection, data, onSelect, onShowOnly }: { selection: NonNullable<Selection>; data: GraphData; onSelect: (id: string) => void; onShowOnly: (ids: string[]) => void }) {
+function Details({
+  selection,
+  data,
+  worked,
+  pastAt,
+  onSelect,
+  onShowOnly,
+}: {
+  selection: NonNullable<Selection>;
+  data: GraphData;
+  worked: WorkedTogether[];
+  /** Company id → people who used to work there. */
+  pastAt: Map<string, string[]>;
+  onSelect: (id: string) => void;
+  onShowOnly: (ids: string[]) => void;
+}) {
   if (selection.kind === "person") {
     const p = data.people.find((x) => x.id === selection.id)!;
+    const first = p.name.split(/\s+/)[0];
     const company = data.companies.find((c) => c.id === p.companyId);
     const colleagues = company ? data.people.filter((x) => x.companyId === company.id && x.id !== p.id) : [];
     const events = data.metAt.filter(([pid]) => pid === p.id).map(([, e]) => data.events.find((x) => x.id === e)!).filter(Boolean);
     const similar = similarTo(data, p.id);
+    const known = data.links.filter((l) => l.contactId === p.id || l.otherId === p.id).map((l) => statedFrom(l, p.id));
+    const together = worked.filter((w) => w.a === p.id || w.b === p.id);
     return (
       <div className="space-y-5">
         <div className="space-y-2 px-2">
@@ -135,6 +163,48 @@ function Details({ selection, data, onSelect, onShowOnly }: { selection: NonNull
             </Button>
           </div>
         </div>
+        {known.length > 0 && (
+          <Section title="Know each other">
+            <ul>
+              {known.map((k) => (
+                <PersonRow
+                  key={`${k.label}-${k.otherId}`}
+                  id={k.otherId}
+                  data={data}
+                  onSelect={onSelect}
+                  detail={
+                    <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                      {k.label === "Knows"
+                        ? `Knows ${first}`
+                        : k.label === "Introduced by"
+                          ? `Introduced you to ${first}`
+                          : `${first} introduced you to ${data.people.find((x) => x.id === k.otherId)?.name.split(/\s+/)[0]}`}
+                    </span>
+                  }
+                />
+              ))}
+            </ul>
+          </Section>
+        )}
+        {together.length > 0 && (
+          <Section title="Worked together">
+            <ul>
+              {together.slice(0, 12).map((w) => (
+                <PersonRow
+                  key={`${w.a}-${w.b}`}
+                  id={w.a === p.id ? w.b : w.a}
+                  data={data}
+                  onSelect={onSelect}
+                  detail={
+                    <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                      {w.how.kind === "both_past" ? `Both used to work at ${w.company}` : w.how.formerly === p.id ? `Now at ${w.company}` : `Used to work at ${w.company}`}
+                    </span>
+                  }
+                />
+              ))}
+            </ul>
+          </Section>
+        )}
         {similar.length > 0 && (
           <Section title="Similar background">
             <ul>
@@ -185,24 +255,31 @@ function Details({ selection, data, onSelect, onShowOnly }: { selection: NonNull
   }
 
   const isCompany = selection.kind === "company";
-  const hub = isCompany ? data.companies.find((c) => c.id === selection.id)! : data.events.find((e) => e.id === selection.id)!;
+  const isPlace = selection.kind === "place";
+  const company = isCompany ? data.companies.find((c) => c.id === selection.id) : undefined;
+  const ev = selection.kind === "event" ? data.events.find((e) => e.id === selection.id) : undefined;
+  const pastHere = isCompany ? (pastAt.get(selection.id) ?? []) : [];
   const people = isCompany
     ? data.people.filter((p) => p.companyId === selection.id).map((p) => p.id)
-    : data.metAt.filter(([, e]) => e === selection.id).map(([p]) => p);
-  const ev = !isCompany ? (hub as GraphData["events"][number]) : null;
+    : isPlace
+      ? data.people.filter((p) => p.city && placeId(p) === selection.id).map((p) => p.id)
+      : data.metAt.filter(([, e]) => e === selection.id).map(([p]) => p);
+  const count = (n: number) => `${n} ${n === 1 ? "person" : "people"}`;
   return (
     <div className="space-y-5">
       <div className="space-y-2 px-2">
         <p className="text-xs text-muted-foreground">
           {isCompany
-            ? [(hub as GraphData["companies"][number]).industry, `${people.length} ${people.length === 1 ? "person" : "people"}`].filter(Boolean).join(" · ")
-            : [ev?.date && formatDay(ev.date), ev?.location, `${people.length} ${people.length === 1 ? "person" : "people"} met`].filter(Boolean).join(" · ")}
+            ? [company?.industry, count(people.length), pastHere.length > 0 && `${pastHere.length} used to work here`].filter(Boolean).join(" · ")
+            : isPlace
+              ? `${count(people.length)} based here`
+              : [ev?.date && formatDay(ev.date), ev?.location, `${count(people.length)} met`].filter(Boolean).join(" · ")}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => onShowOnly(people)}>
             Show only them
           </Button>
-          {!isCompany && (
+          {selection.kind === "event" && (
             <Button size="sm" variant="outline" asChild>
               <Link href={`/events/${selection.id}`}>
                 <ExternalLinkIcon data-icon="inline-start" />
@@ -212,13 +289,24 @@ function Details({ selection, data, onSelect, onShowOnly }: { selection: NonNull
           )}
         </div>
       </div>
-      <Section title="People">
-        <ul>
-          {people.map((id) => (
-            <PersonRow key={id} id={id} data={data} onSelect={onSelect} />
-          ))}
-        </ul>
-      </Section>
+      {people.length > 0 && (
+        <Section title={isCompany ? "Work here" : "People"}>
+          <ul>
+            {people.map((id) => (
+              <PersonRow key={id} id={id} data={data} onSelect={onSelect} />
+            ))}
+          </ul>
+        </Section>
+      )}
+      {pastHere.length > 0 && (
+        <Section title="Used to work here">
+          <ul>
+            {pastHere.map((id) => (
+              <PersonRow key={id} id={id} data={data} onSelect={onSelect} />
+            ))}
+          </ul>
+        </Section>
+      )}
     </div>
   );
 }
@@ -257,8 +345,8 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
   const wide = useWide();
   const canvas = useRef<ForceCanvasHandle>(null);
   const [view, setView] = useState<"map" | "list">("map");
-  // Similar-background links start hidden (they tangle the map); a selected person always shows theirs.
-  const [layers, setLayers] = useState<(keyof GraphOptions)[]>(["companies", "events"]);
+  // Similar-background links and places start hidden (they tangle the map); a selected person always shows their similar ones.
+  const [layers, setLayers] = useState<(keyof GraphOptions)[]>(["companies", "events", "ties"]);
   const [filters, setFilters] = useState<GraphFilters>({});
   const [only, setOnly] = useState<Set<string> | null>(initialPeople?.length ? new Set(initialPeople) : null);
   const [selection, setSelection] = useState<Selection>(() => {
@@ -273,9 +361,26 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
     return kind ? { id: initialFocus, kind } : null;
   });
 
-  const options = useMemo<GraphOptions>(() => ({ companies: layers.includes("companies"), events: layers.includes("events"), similar: true }), [layers]);
+  const options = useMemo<GraphOptions>(
+    () => ({ companies: layers.includes("companies"), events: layers.includes("events"), places: layers.includes("places"), ties: layers.includes("ties"), similar: true }),
+    [layers],
+  );
   const graph = useMemo(() => buildGraph(data, options), [data, options]);
+  const worked = useMemo(() => formerColleagues(data.people, data.companies), [data]);
+  const pastAt = useMemo(() => {
+    const resolve = employerResolver(data.companies);
+    const map = new Map<string, string[]>();
+    for (const p of data.people) {
+      for (const id of new Set(p.pastCompanies.flatMap((name) => resolve(name)?.id ?? []))) {
+        if (id !== p.companyId) map.set(id, [...(map.get(id) ?? []), p.id]);
+      }
+    }
+    return map;
+  }, [data]);
   const companyName = useCallback((id: string) => data.companies.find((c) => c.id === id)?.name, [data]);
+  // Names of every node, including companies that only appear in past jobs, and places.
+  const labels = useMemo(() => new Map(buildGraph(data, { companies: true, events: true, places: true, ties: false, similar: false }).nodes.map((n) => [n.id, n.label])), [data]);
+  const label = useCallback((id: string) => labels.get(id), [labels]);
 
   // Bright nodes: people matching the filters (and/or the set from Ask), plus the hubs they connect to.
   const emphasis = useMemo(() => {
@@ -283,13 +388,20 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
     const people = only && matched ? new Set([...only].filter((id) => matched.has(id))) : (only ?? matched);
     if (!people) return null;
     const bright = new Set(people);
-    for (const l of graph.links) if (l.kind !== "similar" && people.has(l.source)) bright.add(l.target);
+    for (const l of graph.links) if (HUB_LINKS.has(l.kind) && people.has(l.source)) bright.add(l.target);
     return bright;
   }, [data.people, filters, companyName, only, graph.links]);
 
   const matchCount = emphasis ? data.people.filter((p) => emphasis.has(p.id)).length : data.people.length;
   const kindOf = useCallback(
-    (id: string): NodeKind => (data.people.some((p) => p.id === id) ? "person" : data.companies.some((c) => c.id === id) ? "company" : "event"),
+    (id: string): NodeKind =>
+      id.startsWith("place:")
+        ? "place"
+        : id.startsWith("past:") || data.companies.some((c) => c.id === id)
+          ? "company"
+          : data.people.some((p) => p.id === id)
+            ? "person"
+            : "event",
     [data],
   );
   const select = useCallback(
@@ -310,13 +422,7 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
   const setFilter = (key: keyof GraphFilters, value: string) => setFilters((f) => ({ ...f, [key]: value === ANY ? undefined : value }));
   const anyFilter = Boolean(filters.roleFamily || filters.seniority || filters.industry || filters.country || filters.query);
 
-  const title = selection
-    ? selection.kind === "person"
-      ? data.people.find((p) => p.id === selection.id)?.name
-      : selection.kind === "company"
-        ? companyName(selection.id)
-        : data.events.find((e) => e.id === selection.id)?.name
-    : null;
+  const title = selection ? (selection.kind === "person" ? data.people.find((p) => p.id === selection.id)?.name : label(selection.id)) : null;
   const subtitle =
     selection?.kind === "person"
       ? (() => {
@@ -324,15 +430,21 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
           return [p?.title, p?.companyId && companyName(p.companyId)].filter(Boolean).join(" at ");
         })()
       : selection?.kind === "company"
-        ? "Company"
-        : selection
-          ? "Event"
-          : null;
+        ? selection.id.startsWith("past:")
+          ? "Company from past jobs"
+          : "Company"
+        : selection?.kind === "place"
+          ? "Place"
+          : selection
+            ? "Event"
+            : null;
 
   const details = selection && title && (
     <Details
       selection={selection}
       data={data}
+      worked={worked}
+      pastAt={pastAt}
       onSelect={(id) => select(id)}
       onShowOnly={(ids) => {
         setOnly(new Set(ids));
@@ -384,18 +496,27 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
             Clear
           </Button>
         )}
-        <div className="flex items-center gap-2 sm:ml-auto">
-          <ToggleGroup type="multiple" variant="outline" size="sm" value={layers} onValueChange={(v) => setLayers(v as (keyof GraphOptions)[])} aria-label="Show on the map">
-            <ToggleGroupItem value="companies" className={ON}>
-              Companies
-            </ToggleGroupItem>
-            <ToggleGroupItem value="events" className={ON}>
-              Events
-            </ToggleGroupItem>
-            <ToggleGroupItem value="similar" className={ON}>
-              Similar
-            </ToggleGroupItem>
-          </ToggleGroup>
+        <div className="flex w-full min-w-0 items-center gap-2 sm:ml-auto sm:w-auto">
+          {/* On a phone the switches scroll sideways rather than widening the page. */}
+          <div className="min-w-0 flex-1 overflow-x-auto sm:flex-none">
+            <ToggleGroup type="multiple" variant="outline" size="sm" value={layers} onValueChange={(v) => setLayers(v as (keyof GraphOptions)[])} aria-label="Show on the map">
+              <ToggleGroupItem value="companies" className={ON}>
+                Companies
+              </ToggleGroupItem>
+              <ToggleGroupItem value="events" className={ON}>
+                Events
+              </ToggleGroupItem>
+              <ToggleGroupItem value="places" className={ON}>
+                Places
+              </ToggleGroupItem>
+              <ToggleGroupItem value="ties" className={ON}>
+                Who knows whom
+              </ToggleGroupItem>
+              <ToggleGroupItem value="similar" className={ON}>
+                Similar
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
           <Tabs value={view} onValueChange={(v) => setView(v as "map" | "list")}>
             <TabsList>
               <TabsTrigger value="map">Map</TabsTrigger>

@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PastJob, StatedLink } from "@/lib/connections";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
@@ -17,6 +18,8 @@ export type GraphData = {
     city: string | null;
     country: string | null;
     lastContact: string;
+    /** Companies from their past jobs, as written. */
+    pastCompanies: string[];
   }[];
   companies: { id: string; name: string; industry: string | null }[];
   events: { id: string; name: string; date: string | null; location: string | null }[];
@@ -24,6 +27,8 @@ export type GraphData = {
   metAt: [string, string][];
   /** [personId, similarPersonId, score] */
   similar: [string, string, number][];
+  /** Who knows whom, as the user stated it. */
+  links: StatedLink[];
   truncated: boolean;
 };
 
@@ -43,12 +48,12 @@ async function all<T>(fetchPage: (from: number, to: number) => PromiseLike<{ dat
 }
 
 export async function getGraphData(supabase: Supabase): Promise<GraphData> {
-  const [contacts, companies, events, interactions, similarity] = await Promise.all([
+  const [contacts, companies, events, interactions, similarity, stated] = await Promise.all([
     all(
       (from, to) =>
         supabase
           .from("contacts")
-          .select("id, full_name, title, company_id, role_family, seniority, industry_override, city, country, last_contacted_at, created_at")
+          .select("id, full_name, title, company_id, role_family, seniority, industry_override, city, country, last_contacted_at, created_at, past_positions")
           .order("created_at", { ascending: false })
           .range(from, to),
       MAX_GRAPH_PEOPLE + 1,
@@ -60,6 +65,7 @@ export async function getGraphData(supabase: Supabase): Promise<GraphData> {
       20000,
     ),
     all((from, to) => supabase.from("contact_similarity").select("contact_id, similar_id, score").range(from, to), 20000),
+    all((from, to) => supabase.from("contact_links").select("id, contact_id, other_id, kind, source").range(from, to), 20000),
   ]);
 
   const people = contacts.slice(0, MAX_GRAPH_PEOPLE);
@@ -80,11 +86,15 @@ export async function getGraphData(supabase: Supabase): Promise<GraphData> {
       city: c.city,
       country: c.country,
       lastContact: c.last_contacted_at ?? c.created_at,
+      pastCompanies: (Array.isArray(c.past_positions) ? (c.past_positions as PastJob[]) : []).flatMap((j) => (j.company?.trim() ? [j.company.trim()] : [])),
     })),
     companies: companies.map((c) => ({ id: c.id, name: c.name, industry: c.industry })),
     events: events.map((e) => ({ id: e.id, name: e.name, date: e.starts_on, location: e.location })),
     metAt: [...metAt.values()],
     similar: similarity.filter((s) => ids.has(s.contact_id) && ids.has(s.similar_id)).map((s) => [s.contact_id, s.similar_id, Math.round(s.score * 1000) / 1000]),
+    links: stated
+      .filter((l) => ids.has(l.contact_id) && ids.has(l.other_id))
+      .map((l) => ({ id: l.id, contactId: l.contact_id, otherId: l.other_id, kind: l.kind as StatedLink["kind"], source: l.source as StatedLink["source"] })),
     truncated: contacts.length > MAX_GRAPH_PEOPLE,
   };
 }

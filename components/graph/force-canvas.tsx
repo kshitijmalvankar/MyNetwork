@@ -10,11 +10,12 @@ import type { GraphLink, GraphNode, NodeKind } from "@/lib/graph-model";
  * side by side; shape is a second cue, so colour never carries meaning alone.
  */
 export const KIND_COLORS: Record<"light" | "dark", Record<NodeKind, string>> = {
-  light: { person: "#2a78d6", company: "#eb6834", event: "#1baf7a" },
-  dark: { person: "#3987e5", company: "#d95926", event: "#199e70" },
+  // Places are a quiet grey: they group people but aren't something to explore.
+  light: { person: "#2a78d6", company: "#eb6834", event: "#1baf7a", place: "#9a8f86" },
+  dark: { person: "#3987e5", company: "#d95926", event: "#199e70", place: "#8a8178" },
 };
 
-type Theme = { mode: "light" | "dark"; surface: string; text: string; muted: string; line: string };
+type Theme = { mode: "light" | "dark"; surface: string; text: string; muted: string; line: string; tie: string };
 
 function readTheme(): Theme {
   const css = getComputedStyle(document.documentElement);
@@ -26,6 +27,7 @@ function readTheme(): Theme {
     text: v("--foreground", dark ? "#fafafa" : "#0a0a0a"),
     muted: v("--muted-foreground", "#737373"),
     line: v("--border", dark ? "#333333" : "#e5e5e5"),
+    tie: v("--brand", dark ? "#f28b6b" : "#c4553a"),
   };
 }
 
@@ -56,7 +58,12 @@ function drawShape(ctx: CanvasRenderingContext2D, n: SimNode, r: number) {
   ctx.beginPath();
   if (n.kind === "person") ctx.arc(x, y, r, 0, 2 * Math.PI);
   else if (n.kind === "company") ctx.roundRect(x - r, y - r, r * 2, r * 2, r * 0.35);
-  else {
+  else if (n.kind === "place") {
+    ctx.moveTo(x, y - r * 1.15);
+    ctx.lineTo(x + r * 1.05, y + r * 0.8);
+    ctx.lineTo(x - r * 1.05, y + r * 0.8);
+    ctx.closePath();
+  } else {
     ctx.moveTo(x, y - r * 1.2);
     ctx.lineTo(x + r * 1.2, y);
     ctx.lineTo(x, y + r * 1.2);
@@ -144,13 +151,15 @@ export const ForceCanvas = forwardRef<ForceCanvasHandle, Props>(function ForceCa
           const s = state.current;
           const ends = [endId(l.source), endId(l.target)];
           if (s.selectedId && ends.includes(s.selectedId)) return t.text;
+          if (l.kind === "knows" || l.kind === "introduced") return t.tie;
           return l.kind === "similar" ? t.muted : t.line;
         })
         .linkWidth((l) => {
           const s = state.current;
-          return s.selectedId && [endId(l.source), endId(l.target)].includes(s.selectedId) ? 1.6 : l.kind === "similar" ? 0.8 : 1;
+          if (s.selectedId && [endId(l.source), endId(l.target)].includes(s.selectedId)) return 1.6;
+          return l.kind === "similar" || l.kind === "lives" ? 0.8 : l.kind === "knows" || l.kind === "introduced" ? 1.4 : 1;
         })
-        .linkLineDash((l) => (l.kind === "similar" ? [3, 3] : null))
+        .linkLineDash((l) => (l.kind === "similar" ? [3, 3] : l.kind === "worked" ? [1, 2.5] : null))
         .linkVisibility((l) => {
           const s = state.current;
           const ends = [endId(l.source), endId(l.target)];
@@ -179,8 +188,11 @@ export const ForceCanvas = forwardRef<ForceCanvasHandle, Props>(function ForceCa
       const charge = g.d3Force("charge");
       charge?.strength?.((n: SimNode) => (n.kind === "person" ? -40 : -160));
       const link = g.d3Force("link");
-      link?.distance?.((l: SimLink) => (l.kind === "similar" ? 70 : l.kind === "met" ? 45 : 30));
-      link?.strength?.((l: SimLink) => (l.kind === "similar" ? 0.04 : 0.6));
+      // Places and past jobs pull gently too: they shouldn't drag people out of their current company's cluster.
+      const DISTANCE: Partial<Record<SimLink["kind"], number>> = { similar: 70, met: 45, worked: 45, lives: 60, knows: 50, introduced: 50 };
+      const STRENGTH: Partial<Record<SimLink["kind"], number>> = { similar: 0.04, lives: 0.05, worked: 0.25, knows: 0.2, introduced: 0.2 };
+      link?.distance?.((l: SimLink) => DISTANCE[l.kind] ?? 30);
+      link?.strength?.((l: SimLink) => STRENGTH[l.kind] ?? 0.6);
 
       graph.current = g;
       g.graphData({ nodes: nodes.map((n) => ({ ...n })), links: links.map((l) => ({ ...l })) });
