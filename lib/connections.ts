@@ -89,3 +89,31 @@ export function untilLabel(until: string | null | undefined) {
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString("en", until.length === 7 ? { month: "short", year: "numeric", timeZone: "UTC" } : { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
+
+const simpleName = (name: string) =>
+  name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean);
+
+/**
+ * Which contact a name in a note means: the same full name, or the same first
+ * and last name, or, for a first name on its own, the only contact with it.
+ * Anything ambiguous gives null, so a guess never links the wrong person.
+ */
+export function matchPerson(name: string, people: { id: string; name: string }[]): string | null {
+  const wanted = simpleName(name);
+  if (!wanted.length) return null;
+  const candidates = people.map((p) => ({ id: p.id, words: simpleName(p.name) }));
+  const only = (list: typeof candidates) => (list.length === 1 ? list[0].id : null);
+
+  const exact = candidates.filter((c) => c.words.join(" ") === wanted.join(" "));
+  if (exact.length) return only(exact);
+  if (wanted.length >= 2) return only(candidates.filter((c) => c.words[0] === wanted[0] && c.words[c.words.length - 1] === wanted[wanted.length - 1]));
+  return only(candidates.filter((c) => c.words[0] === wanted[0]));
+}

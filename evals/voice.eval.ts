@@ -4,10 +4,9 @@
 //   pnpm eval voice
 //   EVAL_VOICE_MODELS=a/b,c/d pnpm eval voice
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, it } from "vitest";
 import { models } from "@/lib/ai/models";
 import { processVoiceNote, sniffAudio } from "@/lib/ai/voice";
-import { extractFollowUps } from "@/lib/suggestions";
 import "./session";
 
 // "model" or "model@low" to try a model with reasoning on.
@@ -59,32 +58,5 @@ describe("voice notes", () => {
     }
     mkdirSync("evals/results", { recursive: true });
     writeFileSync(`evals/results/voice-${new Date().toISOString().replace(/[:.]/g, "-")}.json`, JSON.stringify(report, null, 2));
-  });
-});
-
-const TYPED: { note: string; followUps: { mentions: string; dueIn: string[] }[] }[] = [
-  { note: "Great chat about warehouse robots. I'll send her the case study on Monday.", followUps: [{ mentions: "case study", dueIn: ["2026-10-26"] }] },
-  { note: "Loves trekking, has two kids, based in Mumbai.", followUps: [] },
-  {
-    note: "Need to book a demo with their team before the end of the month, and email Lucas about the intro tomorrow.",
-    followUps: [
-      { mentions: "demo", dueIn: ["2026-10-30", "2026-10-31"] },
-      { mentions: "lucas", dueIn: ["2026-10-22"] },
-    ],
-  },
-];
-
-describe("typed notes", () => {
-  it("finds follow-ups, and skips the AI call when there can't be any", { timeout: 120_000 }, async () => {
-    const results = await Promise.all(TYPED.map((t) => extractFollowUps(t.note, { about: "Priya Shah (Senior Product Manager at Northwind Robotics)", today: TODAY })));
-    expect(results[1].usage).toBeNull();
-    results.forEach((r, i) => {
-      expect(r.items).toHaveLength(TYPED[i].followUps.length);
-      for (const want of TYPED[i].followUps) {
-        const got = r.items.find((x) => x.action.toLowerCase().includes(want.mentions));
-        expect(got, `${TYPED[i].note} → ${want.mentions}`).toBeTruthy();
-        expect(want.dueIn).toContain(got!.dueDate);
-      }
-    });
   });
 });

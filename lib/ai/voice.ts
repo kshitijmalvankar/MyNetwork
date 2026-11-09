@@ -4,7 +4,7 @@ import { z } from "zod";
 import { chatModel, costOf } from "@/lib/ai/client";
 import type { UsageEntry } from "@/lib/ai/metering";
 import { models } from "@/lib/ai/models";
-import { followUpRules } from "@/lib/suggestions";
+import { followUpRules } from "@/lib/ai/note-analysis";
 
 export const MAX_VOICE_SECONDS = 300;
 export const MAX_VOICE_BYTES = 3 * 1024 * 1024;

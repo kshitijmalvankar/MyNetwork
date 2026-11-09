@@ -158,3 +158,19 @@ Mercury 3 is about 2 seconds faster, but refusing to look up an email address is
 - **Per-account cap.** Notes have no monthly allowance, so one account saving notes as fast as the rate limit allows could reach the global $5 a day and pause AI for everyone. `AI_USER_DAILY_USD` (default $1) stops that account first. Tested live.
 - **Labels.** `ai_usage` now records follow-ups from notes as `notes` and Insights summaries as `insights`, not `brief`. Their past rows keep the old label.
 - **Follow-up keyword check.** It sent 7 of the 17 fixture notes to AI, and words like "next" let through notes with no promise in them. It's left as it is, because one call per note will replace it when notes also feed the graph.
+
+# Reading notes eval (2026-11-09)
+
+Run with `pnpm eval notes`. One call per note now finds follow-ups, who knows whom, past jobs and topics, replacing the follow-ups-only call and its keyword check. The answers come from the generated 500-person network, which knows which notes mention an introduction, a friend, a past employer, a topic or a promise. 95 notes from 37 people, plus the three typed follow-up cases that used to be in the voice eval.
+
+| Model | People (introductions, "knows") | Past jobs | Topics | Follow-ups | Cost / note | p50 |
+|---|---|---|---|---|---|---|
+| **anthropic/claude-haiku-5.5** (prompt v3) | **100%, none extra** | **100%, none extra** | **89%, no hobbies** | **5/5 promises, 1 invented** | **$0.0002** | 0.9 s |
+
+## Findings
+- **The first version invented follow-ups** from lines like "Wants to compare notes again soon": 12 across 95 notes. These are what the other person wants, not something the user promised. The old keyword check never sent those notes to the AI at all. The note instructions now say so, and it fell to 1.
+- **"Before the end of the month" lost its date** in the first two versions. A hint fixed it.
+- **The voice prompt is unchanged.** It shares the follow-up rules, and voice replays can't be re-recorded while the OpenRouter balance is under $0.50, which audio needs.
+- **Topics reuse a list of the network's existing topics**, so the same thing gets the same name and topics can link people.
+- **Names are matched to contacts in code, not by the AI.** A first name shared by two contacts is left out rather than guessed.
+- **Cost.** Every typed note is now read, about $0.0002 each; voice notes add one call on the transcript. Notes have no monthly allowance, so the per-account daily cap is what bounds this.

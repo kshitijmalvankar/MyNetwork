@@ -27,14 +27,14 @@ isOneToOne: false
                   ]
                 },"ai_suggestions": {
                   Row: {
-                    "contact_id": string,"created_at": string,"decided_at": string | null,"due_on": string | null,"id": string,"kind": string,"note_id": string | null,"status": string,"text_enc": string | null,"user_id": string
+                    "contact_id": string,"created_at": string,"decided_at": string | null,"due_on": string | null,"id": string,"kind": string,"note_id": string | null,"other_id": string | null,"payload_enc": string | null,"status": string,"text_enc": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "contact_id": string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind": string,"note_id"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
+                    "contact_id": string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind": string,"note_id"?: string | null,"other_id"?: string | null,"payload_enc"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "contact_id"?: string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind"?: string,"note_id"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
+                    "contact_id"?: string,"created_at"?: string,"decided_at"?: string | null,"due_on"?: string | null,"id"?: string,"kind"?: string,"note_id"?: string | null,"other_id"?: string | null,"payload_enc"?: string | null,"status"?: string,"text_enc"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -48,6 +48,12 @@ isOneToOne: false
       columns: ["note_id","user_id"]
 isOneToOne: false
       referencedRelation: "notes"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "ai_suggestions_other_id_fkey"
+      columns: ["other_id","user_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
       referencedColumns: ["id","user_id"]
     }
                   ]
@@ -227,14 +233,14 @@ isOneToOne: false
                   ]
                 },"contacts": {
                   Row: {
-                    "address_enc": string | null,"background_embedding": string | null,"background_hash": string | null,"background_model": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"index_requested_at": string,"indexed_at": string | null,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"needs_index": boolean | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"updated_at": string,"user_id": string,"website": string | null
+                    "address_enc": string | null,"background_embedding": string | null,"background_hash": string | null,"background_model": string | null,"city": string | null,"company_id": string | null,"country": string | null,"created_at": string,"emails_enc": string | null,"full_name": string,"id": string,"index_requested_at": string,"indexed_at": string | null,"industry_override": string | null,"language": string | null,"last_contacted_at": string | null,"name_native": string | null,"needs_index": boolean | null,"past_positions": NonNullable<Json>,"phones_enc": string | null,"raw_extraction_enc": string | null,"role_family": string | null,"seniority": string | null,"source_scan_id": string | null,"title": string | null,"title_native": string | null,"topics_enc": string | null,"updated_at": string,"user_id": string,"website": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name": string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"topics_enc"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
                   }
                   Update: {
-                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
+                    "address_enc"?: string | null,"background_embedding"?: string | null,"background_hash"?: string | null,"background_model"?: string | null,"city"?: string | null,"company_id"?: string | null,"country"?: string | null,"created_at"?: string,"emails_enc"?: string | null,"full_name"?: string,"id"?: string,"index_requested_at"?: string,"indexed_at"?: string | null,"industry_override"?: string | null,"language"?: string | null,"last_contacted_at"?: string | null,"name_native"?: string | null,"needs_index"?: never,"past_positions"?: NonNullable<Json>,"phones_enc"?: string | null,"raw_extraction_enc"?: string | null,"role_family"?: string | null,"seniority"?: string | null,"source_scan_id"?: string | null,"title"?: string | null,"title_native"?: string | null,"topics_enc"?: string | null,"updated_at"?: string,"user_id"?: string,"website"?: string | null
                   }
                   Relationships: [
                     {

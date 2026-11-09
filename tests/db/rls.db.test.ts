@@ -221,6 +221,7 @@ describe("links between rows", () => {
     ["cached brief", (sp) => sp`insert into public.ai_cache (user_id, kind, contact_id, input_hash, payload_enc, model) values (${me}, 'brief', ${target.contact}, 'h', '\\x00', 'm')`],
     ["suggestion", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id) values (${me}, 'follow_up', ${target.contact})`],
     ["suggestion from a note", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id, note_id) values (${me}, 'follow_up', ${own.contact}, ${target.note})`],
+    ["suggested connection", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id, other_id) values (${me}, 'connection', ${own.contact}, ${target.other})`],
     ["chat message", (sp) => sp`insert into public.chat_messages (user_id, thread_id, message_id, role, parts_enc) values (${me}, ${target.thread}, 'm1', 'user', '\\x00')`],
     ["who-knows-whom link", (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${me}, ${own.contact}, ${target.other}, 'introduced_by')`],
     ["link backed by a note", (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind, source, note_id) values (${me}, ${own.other}, ${own.contact}, 'introduced_by', 'ai', ${target.note})`],

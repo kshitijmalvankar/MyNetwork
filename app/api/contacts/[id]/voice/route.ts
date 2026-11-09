@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { guardAiRequest, textError } from "@/lib/ai/guard";
 import { recordUsage, releaseQuota } from "@/lib/ai/metering";
@@ -11,7 +11,7 @@ import { todayIn } from "@/lib/dates";
 import { contactHeadline } from "@/lib/knowledge/text";
 import { requestReindex } from "@/lib/knowledge/indexer";
 import { putEncrypted, removeFiles } from "@/lib/storage";
-import { saveFollowUps } from "@/lib/suggestions";
+import { saveFollowUps, suggestFromNote } from "@/lib/suggestions";
 import { toBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
 
@@ -100,6 +100,8 @@ export async function POST(request: NextRequest, { params }: RouteContext<"/api/
     return [];
   });
   await requestReindex(supabase, user.id, { contactIds: [contactId] });
+  // Follow-ups came with the transcript; connections, past jobs and topics come from reading it.
+  if (note.transcript.trim()) after(() => suggestFromNote(user.id, contactId, noteId, note.transcript, { followUps: false }));
 
   return NextResponse.json({ noteId, summary: note.summary, suggestions }, { headers: { "Cache-Control": "no-store" } });
 }

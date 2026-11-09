@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { largeNetwork } from "@/scripts/seed/large-network";
 import { findCompanyMatch } from "@/lib/companies";
-import { employerResolver, formerColleagues, statedFrom, untilLabel } from "@/lib/connections";
+import { employerResolver, formerColleagues, matchPerson, statedFrom, untilLabel } from "@/lib/connections";
 
 const companies = [
   { id: "c1", name: "XYZ Technologies" },
@@ -77,5 +77,27 @@ describe("untilLabel", () => {
     expect(untilLabel("2024-06")).toBe("Jun 2024");
     expect(untilLabel("2026-10-12")).toBe("Oct 12, 2026");
     expect(untilLabel(null)).toBeNull();
+  });
+});
+
+describe("matchPerson", () => {
+  const people = [
+    { id: "1", name: "Rahul Desai" },
+    { id: "2", name: "Rahul Mehta" },
+    { id: "3", name: "Priya Ananya Shah" },
+    { id: "4", name: "Lena Müller" },
+  ];
+
+  it("matches full names, first and last names, and unique first names", () => {
+    expect(matchPerson("Rahul Desai", people)).toBe("1");
+    expect(matchPerson("priya shah", people)).toBe("3");
+    expect(matchPerson("Lena Muller", people)).toBe("4");
+    expect(matchPerson("Lena", people)).toBe("4");
+  });
+
+  it("refuses to guess when a name could be more than one person", () => {
+    expect(matchPerson("Rahul", people)).toBeNull();
+    expect(matchPerson("Tom Becker", people)).toBeNull();
+    expect(matchPerson("", people)).toBeNull();
   });
 });
