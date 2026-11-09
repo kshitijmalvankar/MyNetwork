@@ -14,6 +14,7 @@ const person = (id: string, extra: Partial<GraphData["people"][number]> = {}) =>
   country: null,
   lastContact: "2026-10-01T00:00:00Z",
   pastCompanies: [],
+  topics: [],
   ...extra,
 });
 
@@ -45,7 +46,7 @@ const data: GraphData = {
   truncated: false,
 };
 
-const none = { companies: false, events: false, places: false, ties: false, similar: false };
+const none = { companies: false, events: false, places: false, topics: false, ties: false, similar: false };
 
 describe("buildGraph", () => {
   it("links people to their companies and events, skipping empty hubs", () => {
@@ -75,6 +76,16 @@ describe("new kinds of connection", () => {
     const g = buildGraph(data, { ...none, places: true });
     expect(g.nodes.filter((n) => n.kind === "place").map((n) => [n.id, n.label, n.size])).toEqual([["place:Berlin|", "Berlin", 2]]);
     expect(g.links.filter((l) => l.kind === "lives")).toHaveLength(2);
+  });
+
+  it("adds a topic only where two or more people share it", () => {
+    const withTopics: GraphData = {
+      ...data,
+      people: data.people.map((p) => ({ ...p, topics: p.id === "a" || p.id === "c" ? ["warehouse automation"] : p.id === "b" ? ["open banking"] : [] })),
+    };
+    const g = buildGraph(withTopics, { ...none, topics: true });
+    expect(g.nodes.filter((n) => n.kind === "topic").map((n) => [n.id, n.size])).toEqual([["topic:warehouse automation", 2]]);
+    expect(g.links.filter((l) => l.kind === "about").map((l) => l.source).sort()).toEqual(["a", "c"]);
   });
 
   it("draws who knows whom only when switched on", () => {

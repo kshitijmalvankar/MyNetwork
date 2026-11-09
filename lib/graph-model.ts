@@ -4,16 +4,16 @@ import { employerResolver } from "@/lib/connections";
 import type { GraphData } from "@/lib/graph";
 
 export type Person = GraphData["people"][number];
-export type NodeKind = "person" | "company" | "event" | "place";
-/** works/worked: a job now or in the past; met: at an event; lives: in a city; knows/introduced: stated by the user. */
-export type LinkKind = "works" | "worked" | "met" | "lives" | "knows" | "introduced" | "similar";
-/** Links to a company, event or place, as opposed to between two people. */
-export const HUB_LINKS = new Set<LinkKind>(["works", "worked", "met", "lives"]);
+export type NodeKind = "person" | "company" | "event" | "place" | "topic";
+/** works/worked: a job now or in the past; met: at an event; lives: in a city; about: a topic; knows/introduced: stated by the user. */
+export type LinkKind = "works" | "worked" | "met" | "lives" | "about" | "knows" | "introduced" | "similar";
+/** Links to a company, event, place or topic, as opposed to between two people. */
+export const HUB_LINKS = new Set<LinkKind>(["works", "worked", "met", "lives", "about"]);
 
 export type GraphNode = { id: string; kind: NodeKind; label: string; size: number; x?: number; y?: number };
 export type GraphLink = { source: string; target: string; kind: LinkKind; score?: number };
 
-export type GraphOptions = { companies: boolean; events: boolean; places: boolean; ties: boolean; similar: boolean };
+export type GraphOptions = { companies: boolean; events: boolean; places: boolean; topics: boolean; ties: boolean; similar: boolean };
 
 export const placeId = (p: Pick<Person, "city" | "country">) => `place:${p.city}|${p.country ?? ""}`;
 export type GraphFilters = { roleFamily?: string; seniority?: string; industry?: string; country?: string; query?: string };
@@ -69,6 +69,14 @@ export function buildGraph(data: GraphData, options: GraphOptions): { nodes: Gra
     for (const p of data.people) if (p.city) counts.set(placeId(p), (counts.get(placeId(p)) ?? 0) + 1);
     for (const [id, n] of counts) if (n >= 2) nodes.push({ id, kind: "place", label: id.slice(6).split("|")[0], size: n });
     for (const p of data.people) if (p.city && (counts.get(placeId(p)) ?? 0) >= 2) links.push({ source: p.id, target: placeId(p), kind: "lives" });
+  }
+
+  if (options.topics) {
+    // Like places, a topic only shows when two or more people share it.
+    const counts = new Map<string, number>();
+    for (const p of data.people) for (const t of p.topics) counts.set(t, (counts.get(t) ?? 0) + 1);
+    for (const [t, n] of counts) if (n >= 2) nodes.push({ id: `topic:${t}`, kind: "topic", label: t, size: n });
+    for (const p of data.people) for (const t of p.topics) if ((counts.get(t) ?? 0) >= 2) links.push({ source: p.id, target: `topic:${t}`, kind: "about" });
   }
 
   if (options.ties) {

@@ -20,7 +20,7 @@ export default async function GraphPage({ searchParams }: PageProps<"/graph">) {
   const user = await requireUser();
   const supabase = await createClient();
   const params = await searchParams;
-  const [data, backlog] = await Promise.all([getGraphData(supabase), indexBacklog(supabase)]);
+  const [data, backlog] = await Promise.all([getGraphData(supabase, user.id), indexBacklog(supabase)]);
   // People added or changed recently get their "similar background" matches in the background.
   if (backlog > 0) after(() => indexStale({ userId: user.id, limit: 200 }));
 

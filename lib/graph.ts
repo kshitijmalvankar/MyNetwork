@@ -1,11 +1,14 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PastJob, StatedLink } from "@/lib/connections";
+import { openJson } from "@/lib/crypto/envelope";
+import { getUserDataKey } from "@/lib/crypto/user-key";
+import { fromBytea } from "@/lib/supabase/bytea";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
 
-/** Everything the graph draws, kept compact: only plaintext fields, no contact details. */
+/** Everything the graph draws, kept compact: no contact details, and topics are the only decrypted field. */
 export type GraphData = {
   people: {
     id: string;
@@ -20,6 +23,8 @@ export type GraphData = {
     lastContact: string;
     /** Companies from their past jobs, as written. */
     pastCompanies: string[];
+    /** What they work on, from notes the user confirmed. */
+    topics: string[];
   }[];
   companies: { id: string; name: string; industry: string | null }[];
   events: { id: string; name: string; date: string | null; location: string | null }[];
@@ -47,13 +52,13 @@ async function all<T>(fetchPage: (from: number, to: number) => PromiseLike<{ dat
   return rows;
 }
 
-export async function getGraphData(supabase: Supabase): Promise<GraphData> {
+export async function getGraphData(supabase: Supabase, userId: string): Promise<GraphData> {
   const [contacts, companies, events, interactions, similarity, stated] = await Promise.all([
     all(
       (from, to) =>
         supabase
           .from("contacts")
-          .select("id, full_name, title, company_id, role_family, seniority, industry_override, city, country, last_contacted_at, created_at, past_positions")
+          .select("id, full_name, title, company_id, role_family, seniority, industry_override, city, country, last_contacted_at, created_at, past_positions, topics_enc")
           .order("created_at", { ascending: false })
           .range(from, to),
       MAX_GRAPH_PEOPLE + 1,
@@ -69,6 +74,7 @@ export async function getGraphData(supabase: Supabase): Promise<GraphData> {
   ]);
 
   const people = contacts.slice(0, MAX_GRAPH_PEOPLE);
+  const dek = people.some((c) => c.topics_enc) ? await getUserDataKey(userId) : null;
   const ids = new Set(people.map((c) => c.id));
   const industryOf = new Map(companies.map((c) => [c.id, c.industry]));
   const metAt = new Map<string, [string, string]>();
@@ -87,6 +93,7 @@ export async function getGraphData(supabase: Supabase): Promise<GraphData> {
       country: c.country,
       lastContact: c.last_contacted_at ?? c.created_at,
       pastCompanies: (Array.isArray(c.past_positions) ? (c.past_positions as PastJob[]) : []).flatMap((j) => (j.company?.trim() ? [j.company.trim()] : [])),
+      topics: dek && c.topics_enc ? openJson<string[]>(dek, fromBytea(c.topics_enc), { userId, table: "contacts", column: "topics_enc", rowId: c.id }) : [],
     })),
     companies: companies.map((c) => ({ id: c.id, name: c.name, industry: c.industry })),
     events: events.map((e) => ({ id: e.id, name: e.name, date: e.starts_on, location: e.location })),

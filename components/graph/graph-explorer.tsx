@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, MapPinIcon, MaximizeIcon, MessageCircleIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
+import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, HashIcon, MapPinIcon, MaximizeIcon, MessageCircleIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
 import { ForceCanvas, KIND_COLORS, type ForceCanvasHandle } from "@/components/graph/force-canvas";
 import { PersonAvatar } from "@/components/contacts/person-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -46,7 +46,7 @@ function useWide() {
 }
 
 function KindIcon({ kind, className }: { kind: NodeKind; className?: string }) {
-  const Icon = kind === "person" ? UserIcon : kind === "company" ? Building2Icon : kind === "place" ? MapPinIcon : CalendarDaysIcon;
+  const Icon = kind === "person" ? UserIcon : kind === "company" ? Building2Icon : kind === "place" ? MapPinIcon : kind === "topic" ? HashIcon : CalendarDaysIcon;
   return <Icon className={className} />;
 }
 
@@ -56,6 +56,7 @@ function Legend() {
     ["company", "Companies", "rounded-[3px]"],
     ["event", "Events", "rotate-45 rounded-[2px]"],
     ["place", "Places", "[clip-path:polygon(50%_0,100%_100%,0_100%)]"],
+    ["topic", "Topics", "[clip-path:polygon(25%_0,75%_0,100%_50%,75%_100%,25%_100%,0_50%)]"],
   ];
   return (
     <div className="pointer-events-none absolute right-3 bottom-3 left-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur sm:right-auto">
@@ -256,6 +257,7 @@ function Details({
 
   const isCompany = selection.kind === "company";
   const isPlace = selection.kind === "place";
+  const isTopic = selection.kind === "topic";
   const company = isCompany ? data.companies.find((c) => c.id === selection.id) : undefined;
   const ev = selection.kind === "event" ? data.events.find((e) => e.id === selection.id) : undefined;
   const pastHere = isCompany ? (pastAt.get(selection.id) ?? []) : [];
@@ -263,7 +265,9 @@ function Details({
     ? data.people.filter((p) => p.companyId === selection.id).map((p) => p.id)
     : isPlace
       ? data.people.filter((p) => p.city && placeId(p) === selection.id).map((p) => p.id)
-      : data.metAt.filter(([, e]) => e === selection.id).map(([p]) => p);
+      : isTopic
+        ? data.people.filter((p) => p.topics.includes(selection.id.slice(6))).map((p) => p.id)
+        : data.metAt.filter(([, e]) => e === selection.id).map(([p]) => p);
   const count = (n: number) => `${n} ${n === 1 ? "person" : "people"}`;
   return (
     <div className="space-y-5">
@@ -273,6 +277,8 @@ function Details({
             ? [company?.industry, count(people.length), pastHere.length > 0 && `${pastHere.length} used to work here`].filter(Boolean).join(" · ")
             : isPlace
               ? `${count(people.length)} based here`
+              : isTopic
+                ? `${count(people.length)} work on this`
               : [ev?.date && formatDay(ev.date), ev?.location, `${count(people.length)} met`].filter(Boolean).join(" · ")}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -362,7 +368,7 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
   });
 
   const options = useMemo<GraphOptions>(
-    () => ({ companies: layers.includes("companies"), events: layers.includes("events"), places: layers.includes("places"), ties: layers.includes("ties"), similar: true }),
+    () => ({ companies: layers.includes("companies"), events: layers.includes("events"), places: layers.includes("places"), topics: layers.includes("topics"), ties: layers.includes("ties"), similar: true }),
     [layers],
   );
   const graph = useMemo(() => buildGraph(data, options), [data, options]);
@@ -379,7 +385,10 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
   }, [data]);
   const companyName = useCallback((id: string) => data.companies.find((c) => c.id === id)?.name, [data]);
   // Names of every node, including companies that only appear in past jobs, and places.
-  const labels = useMemo(() => new Map(buildGraph(data, { companies: true, events: true, places: true, ties: false, similar: false }).nodes.map((n) => [n.id, n.label])), [data]);
+  const labels = useMemo(
+    () => new Map(buildGraph(data, { companies: true, events: true, places: true, topics: true, ties: false, similar: false }).nodes.map((n) => [n.id, n.label])),
+    [data],
+  );
   const label = useCallback((id: string) => labels.get(id), [labels]);
 
   // Bright nodes: people matching the filters (and/or the set from Ask), plus the hubs they connect to.
@@ -397,6 +406,8 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
     (id: string): NodeKind =>
       id.startsWith("place:")
         ? "place"
+        : id.startsWith("topic:")
+          ? "topic"
         : id.startsWith("past:") || data.companies.some((c) => c.id === id)
           ? "company"
           : data.people.some((p) => p.id === id)
@@ -435,6 +446,8 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
           : "Company"
         : selection?.kind === "place"
           ? "Place"
+          : selection?.kind === "topic"
+            ? "Topic"
           : selection
             ? "Event"
             : null;
@@ -508,6 +521,9 @@ export function GraphExplorer({ data, initialFocus, initialPeople }: { data: Gra
               </ToggleGroupItem>
               <ToggleGroupItem value="places" className={ON}>
                 Places
+              </ToggleGroupItem>
+              <ToggleGroupItem value="topics" className={ON}>
+                Topics
               </ToggleGroupItem>
               <ToggleGroupItem value="ties" className={ON}>
                 Who knows whom
