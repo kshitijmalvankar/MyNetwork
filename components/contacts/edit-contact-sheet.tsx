@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 import { editContact } from "@/app/(app)/contacts/actions";
+import { IndustrySelect } from "@/components/contacts/industry-select";
 import { ListEditor } from "@/components/review/list-editor";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
@@ -124,12 +125,11 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
             </div>
             <Field>
               <FieldLabel htmlFor="e-industry">Industry (this person)</FieldLabel>
-              <Input
+              <IndustrySelect
                 id="e-industry"
                 value={form.industryOverride}
-                placeholder={form.industry || "Same as company"}
-                onChange={(e) => set("industryOverride", e.target.value)}
-                className="h-10"
+                onChange={(v) => set("industryOverride", v)}
+                emptyLabel={form.industry ? `Same as company (${form.industry})` : "Same as company"}
               />
             </Field>
             <FieldSeparator />

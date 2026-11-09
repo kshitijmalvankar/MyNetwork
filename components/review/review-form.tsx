@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { discardScan, rereadScan, saveReviewedScan } from "@/app/(app)/review/actions";
+import { IndustrySelect } from "@/components/contacts/industry-select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -323,7 +324,7 @@ export function ReviewForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field>
                   <FieldLabel htmlFor="industry">Industry</FieldLabel>
-                  <Input id="industry" value={card.industry} onChange={(e) => set("industry", e.target.value)} className="h-10" />
+                  <IndustrySelect id="industry" value={card.industry} onChange={(v) => set("industry", v)} emptyLabel="Not set" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="website">Website</FieldLabel>
