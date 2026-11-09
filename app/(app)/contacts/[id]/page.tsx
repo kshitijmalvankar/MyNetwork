@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BriefcaseIcon, Building2Icon, ChevronLeftIcon, GlobeIcon, HistoryIcon, MailIcon, MapPinIcon, PhoneIcon, SparklesIcon, type LucideIcon } from "lucide-react";
 import { AssistCard } from "@/components/contacts/assist";
+import { ConnectionsCard } from "@/components/contacts/connections-card";
 import { ContactMenu, LogInteractionDialog } from "@/components/contacts/contact-actions";
 import { EditContactSheet } from "@/components/contacts/edit-contact-sheet";
 import { PersonAvatar, PersonNameMorph } from "@/components/contacts/person-avatar";
@@ -17,9 +18,10 @@ import { loadPersonContext } from "@/lib/ai/brief";
 import { quotaStatus } from "@/lib/ai/metering";
 import { getProfile, requireUser } from "@/lib/auth/dal";
 import { untilLabel } from "@/lib/connections";
+import { loadConnections } from "@/lib/contacts/connections";
 import { todayIn } from "@/lib/dates";
-import { getSuggestions } from "@/lib/suggestions";
 import { personHue, timeAgo } from "@/lib/format";
+import { getSuggestions } from "@/lib/suggestions";
 import { createClient } from "@/lib/supabase/server";
 
 const DETAIL = "flex h-9 max-w-full items-center gap-2 rounded-full bg-muted/70 px-3.5 text-sm [a&]:transition-colors [a&]:hover:bg-accent";
@@ -48,11 +50,12 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
   if (!person) notFound();
   const { contact, related } = person;
 
-  const [profile, { data: events }, quota, suggestions] = await Promise.all([
+  const [profile, { data: events }, quota, suggestions, connections] = await Promise.all([
     getProfile(user.id),
     supabase.from("events").select("id, name, starts_on").order("starts_on", { ascending: false, nullsFirst: false }).limit(100),
     quotaStatus(user.id, "brief"),
     getSuggestions(supabase, user.id, { contactId: id }),
+    loadConnections(supabase, id),
   ]);
   const knownIds = [
     contact.id,
@@ -163,6 +166,8 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
           )}
 
           <RemindersCard contactId={contact.id} reminders={contact.reminders} today={today} />
+
+          <ConnectionsCard contactId={contact.id} name={contact.fullName} connections={connections} />
 
           {contact.images.length > 0 && (
             <Card className="gap-4">

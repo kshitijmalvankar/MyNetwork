@@ -167,6 +167,38 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"contact_links": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"id": string,"kind": string,"note_id": string | null,"other_id": string,"source": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"id"?: string,"kind": string,"note_id"?: string | null,"other_id": string,"source"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"note_id"?: string | null,"other_id"?: string,"source"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "contact_links_contact_id_user_id_fkey"
+      columns: ["contact_id","user_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "contact_links_note_id_user_id_fkey"
+      columns: ["note_id","user_id"]
+isOneToOne: false
+      referencedRelation: "notes"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "contact_links_other_id_user_id_fkey"
+      columns: ["other_id","user_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"contact_similarity": {
                   Row: {
                     "contact_id": string,"score": number,"similar_id": string,"user_id": string

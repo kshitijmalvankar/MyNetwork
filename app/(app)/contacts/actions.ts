@@ -295,3 +295,53 @@ export async function deleteInteraction(contactId: string, interactionId: string
     return fail(err);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Connections: who knows whom
+// ---------------------------------------------------------------------------
+
+const connectionSchema = z.object({
+  contactId: id,
+  otherId: id,
+  // "introduced_by": the other person introduced you to this one; "introduced": the reverse.
+  kind: z.enum(["knows", "introduced_by", "introduced"]),
+});
+
+export async function addConnection(input: z.input<typeof connectionSchema>): Promise<Result> {
+  try {
+    const user = await guard();
+    const parsed = connectionSchema.safeParse(input);
+    if (!parsed.success || parsed.data.contactId === parsed.data.otherId) return { ok: false, message: "Pick someone else to connect them with." };
+    const { contactId, otherId, kind } = parsed.data;
+    // "Knows" goes both ways, so it's stored once with the smaller id first.
+    const [from, to] = kind === "knows" ? [contactId, otherId].sort() : kind === "introduced_by" ? [contactId, otherId] : [otherId, contactId];
+    const supabase = await createClient();
+    const { error } = await supabase.from("contact_links").insert({ user_id: user.id, contact_id: from, other_id: to, kind: kind === "knows" ? "knows" : "introduced_by" });
+    if (error?.code === "23505") return { ok: false, message: "They're already connected like that." };
+    // Both people must be the user's own contacts.
+    if (error?.code === "23503") return { ok: false, message: "Couldn't find that person." };
+    if (error) throw error;
+    refresh(contactId);
+    revalidatePath(`/contacts/${otherId}`);
+    revalidatePath("/graph");
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function removeConnection(contactId: string, linkId: string): Promise<Result> {
+  try {
+    await guard();
+    if (!id.safeParse(contactId).success || !id.safeParse(linkId).success) return { ok: false, message: "Invalid connection" };
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("contact_links").delete().eq("id", linkId).select("contact_id, other_id").maybeSingle();
+    if (error || !data) return { ok: false, message: "Couldn't remove that connection." };
+    refresh(contactId);
+    revalidatePath(`/contacts/${data.contact_id === contactId ? data.other_id : data.contact_id}`);
+    revalidatePath("/graph");
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}

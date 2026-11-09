@@ -153,6 +153,28 @@ describe("network tables", () => {
       expect(cleared.last_contacted_at).toBeNull();
     }));
 
+  it("store who knows whom once, and only between two different people", () =>
+    scenario(async (tx, a, b) => {
+      const [x] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'X') returning id`;
+      const [y] = await tx`insert into public.contacts (user_id, full_name) values (${a}, 'Y') returning id`;
+      const [low, high] = [x.id, y.id].sort();
+      await as(tx, a);
+      await tx`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${a}, ${low}, ${high}, 'knows')`;
+      // "knows" goes both ways, so the reverse order and a repeat are refused.
+      expect(await rejects(tx, (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${a}, ${high}, ${low}, 'knows')`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${a}, ${low}, ${high}, 'knows')`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${a}, ${low}, ${low}, 'introduced_by')`)).toBe(true);
+      await tx`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${a}, ${high}, ${low}, 'introduced_by')`;
+      await tx`reset role`;
+      await as(tx, b);
+      expect(await tx`select id from public.contact_links`).toHaveLength(0);
+      expect(await tx`delete from public.contact_links returning id`).toHaveLength(0);
+      await tx`reset role`;
+      // Deleting either person removes their links.
+      await tx`delete from public.contacts where id = ${low}`;
+      expect(await tx`select id from public.contact_links where user_id = ${a}`).toHaveLength(0);
+    }));
+
   it("go with their owner when the user is deleted", () =>
     scenario(async (tx, a) => {
       const [co] = await tx`insert into public.companies (user_id, name, normalized_name) values (${a}, 'Acme', 'acme') returning id`;
@@ -176,10 +198,11 @@ describe("links between rows", () => {
   async function network(tx: postgres.TransactionSql, owner: string) {
     const [{ id: company }] = await tx`insert into public.companies (user_id, name, normalized_name) values (${owner}, 'Acme', 'acme') returning id`;
     const [{ id: contact }] = await tx`insert into public.contacts (user_id, full_name) values (${owner}, 'Someone') returning id`;
+    const [{ id: other }] = await tx`insert into public.contacts (user_id, full_name) values (${owner}, 'Someone else') returning id`;
     const [{ id: event }] = await tx`insert into public.events (user_id, name) values (${owner}, 'Expo') returning id`;
     const [{ id: note }] = await tx`insert into public.notes (user_id, contact_id, body_enc) values (${owner}, ${contact}, '\\x00') returning id`;
     const [{ id: thread }] = await tx`insert into public.chat_threads (user_id) values (${owner}) returning id`;
-    return { company, contact, event, note, thread } as Record<"company" | "contact" | "event" | "note" | "thread", string>;
+    return { company, contact, other, event, note, thread } as Record<"company" | "contact" | "other" | "event" | "note" | "thread", string>;
   }
   type Network = Awaited<ReturnType<typeof network>>;
 
@@ -199,6 +222,8 @@ describe("links between rows", () => {
     ["suggestion", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id) values (${me}, 'follow_up', ${target.contact})`],
     ["suggestion from a note", (sp) => sp`insert into public.ai_suggestions (user_id, kind, contact_id, note_id) values (${me}, 'follow_up', ${own.contact}, ${target.note})`],
     ["chat message", (sp) => sp`insert into public.chat_messages (user_id, thread_id, message_id, role, parts_enc) values (${me}, ${target.thread}, 'm1', 'user', '\\x00')`],
+    ["who-knows-whom link", (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind) values (${me}, ${own.contact}, ${target.other}, 'introduced_by')`],
+    ["link backed by a note", (sp) => sp`insert into public.contact_links (user_id, contact_id, other_id, kind, source, note_id) values (${me}, ${own.other}, ${own.contact}, 'introduced_by', 'ai', ${target.note})`],
   ];
 
   it("can't point at another user's contact, event, company, note or chat", () =>
@@ -264,6 +289,8 @@ describe("server-only functions", () => {
       expect(await rejects(tx, (sp) => sp`select public.release_quota(${a}, 'scan', 1000)`)).toBe(true);
       expect(await rejects(tx, (sp) => sp`select * from public.claim_scan(gen_random_uuid())`)).toBe(true);
       expect(await rejects(tx, (sp) => sp`select public.ai_spend_today()`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select public.ai_user_spend_today(${a})`)).toBe(true);
+      expect(await rejects(tx, (sp) => sp`select public.merge_companies(${a}, gen_random_uuid(), '{}')`)).toBe(true);
       expect(await rejects(tx, (sp) => sp`insert into public.ai_usage (user_id, feature, model) values (${a}, 'scan', 'x')`)).toBe(true);
     }));
 });

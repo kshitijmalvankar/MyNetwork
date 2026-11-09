@@ -64,3 +64,35 @@ test("adds a follow-up and marks it done", async ({ page }) => {
   await expect(item.getByRole("checkbox", { name: "Mark done" })).toBeChecked();
   await expect(item.getByText("Today")).toBeHidden();
 });
+
+test("records who introduced whom, and finds former colleagues from a past job", async ({ page }) => {
+  await openContact(page, "Priya Shah");
+  const connections = page.locator('[data-slot="card"]', { hasText: "Connections" });
+
+  await connections.getByRole("button", { name: "Add connection" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Search your contacts").fill("Rahul");
+  await dialog.getByRole("button", { name: /Rahul Desai/ }).click();
+  await dialog.getByLabel("Rahul introduced you to Priya").check();
+  await dialog.getByRole("button", { name: "Connect" }).click();
+  await expect(connections.getByText("Introduced you to Priya")).toBeVisible();
+  await expect(connections.getByRole("link", { name: /Rahul Desai/ })).toBeVisible();
+
+  // It shows on Rahul's profile too, read from his side.
+  await connections.getByRole("link", { name: /Rahul Desai/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Rahul Desai" })).toBeVisible();
+  await expect(page.getByText("Rahul introduced you to Priya")).toBeVisible();
+
+  // A past job at Bluefin links Priya to the people there now.
+  await page.getByRole("main").getByRole("link", { name: "Contacts", exact: true }).click();
+  await openContact(page, "Priya Shah");
+  await page.getByRole("button", { name: "Edit" }).first().click();
+  await page.getByRole("button", { name: "Add a past job" }).click();
+  await page.getByLabel("Past company").fill("Bluefin Analytics Ltd");
+  await page.getByLabel("Past job title").fill("Data Analyst");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Saved")).toBeVisible();
+  await expect(connections.getByText("Worked together")).toBeVisible();
+  await expect(connections.getByRole("link", { name: /Tom Becker/ })).toBeVisible();
+  await expect(connections.getByText("Now at Bluefin Analytics, where Priya used to work").first()).toBeVisible();
+});
