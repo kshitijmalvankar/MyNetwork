@@ -37,6 +37,7 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
     roleFamily: (contact.roleFamily ?? "Other") as RoleFamily,
     seniority: (contact.seniority ?? "Mid") as Seniority,
     pastPositions: contact.pastPositions.map((p) => ({ company: p.company ?? "", title: p.title ?? "", until: p.until?.slice(0, 7) ?? "" })),
+    topics: contact.topics.join(", "),
   });
   const [form, setForm] = useState(initial);
   const set = <K extends keyof ReturnType<typeof initial>>(k: K, v: ReturnType<typeof initial>[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -50,6 +51,7 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
         country: form.country.toUpperCase(),
         // The old company's industry only applies if the company is unchanged.
         industry: form.company.trim() === (contact.company?.name ?? "") ? form.industry : "",
+        topics: form.topics.split(",").map((t) => t.trim()).filter(Boolean),
       });
       if (!res.ok) return void toast.error(res.message);
       toast.success("Saved");
@@ -133,6 +135,10 @@ export function EditContactSheet({ contact }: { contact: ContactDetail }) {
                 onChange={(v) => set("industryOverride", v)}
                 emptyLabel={form.industry ? `Same as company (${form.industry})` : "Same as company"}
               />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="e-topics">Topics</FieldLabel>
+              <Input id="e-topics" value={form.topics} onChange={(e) => set("topics", e.target.value)} placeholder="What they work on, separated by commas" className="h-10" />
             </Field>
             <Field>
               <FieldLabel>Past jobs</FieldLabel>

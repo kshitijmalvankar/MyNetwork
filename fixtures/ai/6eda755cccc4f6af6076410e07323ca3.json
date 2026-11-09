@@ -7,18 +7,18 @@
   "key": "6eda755cccc4f6af6076410e07323ca3",
   "looseKey": "93397650373c1a9183340a1ea7cd2379",
   "ids": [
-    "aeda37ee-7935-4dee-9008-49813d3964be",
-    "9c21a39d-4f63-4005-8b0e-46ec1128ae48",
-    "dadd2b00-e13e-4dcb-a7ae-d9152dbf9f9e",
-    "f742f634-c8c8-4242-939c-f637cb4af333",
-    "a67718bf-b52c-40c3-9a8b-9555dd366d03",
-    "85c0ec19-bc0c-4aec-a3a3-8a5b8be87c03",
-    "9ad8887a-db73-4683-ab24-5cd9d4c01fb9",
-    "17dbb7bb-05b0-4420-a7d9-eef6c96a576a",
-    "8ad7ecd6-f7b8-4224-806d-2fa5b5481474",
-    "628f7d8d-6676-4dec-99cc-7befdc72e608",
-    "89feb63c-e87f-43ce-a7c0-7dc79655e144",
-    "c3e1e43c-e354-4de5-a7b8-a16db545e0e8"
+    "3a211947-eb42-4f80-8615-810fa72ff3d5",
+    "12a82339-a388-4837-bd53-054e32b95b6d",
+    "8c9c3a03-1933-4e84-8dc0-3d6dabbe77d6",
+    "b857a8ba-1e24-4c67-88a0-76ece62c4b11",
+    "a0f1860f-8939-49fc-a0ed-2af6caa7a91c",
+    "4b7fcf43-9997-429f-8702-636d76ec37e1",
+    "90fb4e0c-2761-426c-8f1a-9f8904530db2",
+    "d2b13793-a460-4850-8bac-1fdee1ec3699",
+    "99804e4d-36d8-4119-81c7-7f1bddc8de0a",
+    "5dff9c67-081a-446f-8872-895a05dfa40d",
+    "be183559-f684-4698-b948-60d92bacd02a",
+    "2bd43bc1-047d-4cdf-9323-531782da2e95"
   ],
   "request": [
     {
@@ -39,7 +39,7 @@
     "content": [
       {
         "type": "text",
-        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai.\n\n**How you know them**: You met Priya at TechSummit Mumbai 2026 on 7 Oct 2026, and that is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- Her request for your case study on pick-and-place robots\n- Her love of trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she asked for. No due date is recorded.\n\n**Talking points**:\n- Follow up on the pick-and-place case study and ask whether she has a particular warehouse use case in mind for a pilot.\n- Idea: ask what her team is currently evaluating for warehouse automation, to see whether a pilot could fit.\n- Idea: a light personal touch, such as asking about her Himalayan trekking, could help rebuild rapport since you have only one prior interaction.\n\n**People in common**:\n- [Arjun Mehta](contact:dadd2b00-e13e-4dcb-a7ae-d9152dbf9f9e), VP Sales at Northwind Robotics\n- [Mei Lin](contact:a67718bf-b52c-40c3-9a8b-9555dd366d03), Head of Design at Northwind Robotics\n- [Daniel Okafor](contact:f742f634-c8c8-4242-939c-f637cb4af333), Staff Software Engineer at Northwind Robotics"
+        "text": "**Who they are**: Priya Shah is a Senior Product Manager at Northwind Robotics, based in Mumbai.\n\n**How you know them**: You met Priya at TechSummit Mumbai 2026 on 7 Oct 2026, which is also your last contact.\n\n**What you've talked about**:\n- Her interest in warehouse automation pilots\n- She asked for your case study on pick-and-place robots\n- She loves trekking in the Himalayas\n\n**Open items**:\n- Send Priya the pick-and-place robots case study she asked for. No due date is recorded.\n\n**Talking points**:\n- Follow up on the case study you promised and ask whether she'd like to discuss a warehouse automation pilot.\n- Ask about her Himalayan trekking. This is a personal touch you could consider, though it isn't tied to any business need.\n\n**People in common**:\n- [Arjun Mehta](contact:8c9c3a03-1933-4e84-8dc0-3d6dabbe77d6), VP Sales at Northwind Robotics\n- [Daniel Okafor](contact:b857a8ba-1e24-4c67-88a0-76ece62c4b11), Staff Software Engineer at Northwind Robotics\n- [Mei Lin](contact:a0f1860f-8939-49fc-a0ed-2af6caa7a91c), Head of Design at Northwind Robotics"
       }
     ],
     "finishReason": {
@@ -48,14 +48,14 @@
     },
     "usage": {
       "inputTokens": {
-        "total": 1467,
-        "noCache": 1467,
+        "total": 1450,
+        "noCache": 1450,
         "cacheRead": 0,
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 503,
-        "text": 503,
+        "total": 456,
+        "text": 456,
         "reasoning": 0
       }
     }

@@ -103,6 +103,13 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
                 {contact.seniority && <Badge variant="secondary">{contact.seniority}</Badge>}
                 {contact.industry && <Badge variant="secondary">{contact.industry}</Badge>}
               </div>
+              {contact.topics.length > 0 && (
+                <ul aria-label="Topics" className="flex flex-wrap justify-center gap-x-2.5 gap-y-1 pt-1 text-xs text-muted-foreground sm:justify-start">
+                  {contact.topics.map((t) => (
+                    <li key={t}>#{t}</li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="flex shrink-0 gap-2">
               <LogInteractionDialog contactId={contact.id} events={(events ?? []).map((e) => ({ id: e.id, name: e.name, startsOn: e.starts_on }))} today={today} />
@@ -156,7 +163,7 @@ export default async function ContactPage({ params }: PageProps<"/contacts/[id]"
             <Card className="gap-4">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <SparklesIcon className="size-4 text-brand" /> Suggested follow-ups
+                  <SparklesIcon className="size-4 text-brand" /> Suggestions
                 </CardTitle>
               </CardHeader>
               <CardContent>

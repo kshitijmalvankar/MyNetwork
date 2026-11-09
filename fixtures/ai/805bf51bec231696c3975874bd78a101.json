@@ -44,9 +44,9 @@
         "cacheWrite": 0
       },
       "outputTokens": {
-        "total": 414,
+        "total": 405,
         "text": 208,
-        "reasoning": 206
+        "reasoning": 197
       }
     }
   }

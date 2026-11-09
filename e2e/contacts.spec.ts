@@ -47,7 +47,7 @@ test("adds a note and suggests the follow-up promised in it", async ({ page }) =
 
   // Follow-ups are spotted in the background after the note is saved.
   await eventually(page, async () => {
-    await expect(page.getByText("Suggested follow-ups")).toBeVisible({ timeout: 2_000 });
+    await expect(page.getByText("Suggestions", { exact: true })).toBeVisible({ timeout: 2_000 });
   });
   await expect(page.getByText(/benchmark report/i).last()).toBeVisible();
 });
@@ -69,7 +69,7 @@ test("records who introduced whom, and finds former colleagues from a past job",
   await openContact(page, "Priya Shah");
   const connections = page.locator('[data-slot="card"]', { hasText: "Connections" });
 
-  await connections.getByRole("button", { name: "Add connection" }).click();
+  await connections.getByRole("button", { name: "Add a connection" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Search your contacts").fill("Rahul");
   await dialog.getByRole("button", { name: /Rahul Desai/ }).click();
@@ -95,4 +95,28 @@ test("records who introduced whom, and finds former colleagues from a past job",
   await expect(connections.getByText("Worked together")).toBeVisible();
   await expect(connections.getByRole("link", { name: /Tom Becker/ })).toBeVisible();
   await expect(connections.getByText("Now at Bluefin Analytics, where Priya used to work").first()).toBeVisible();
+});
+
+test("reads a note for who introduced whom, past jobs and topics, and adds them when accepted", async ({ page }) => {
+  await openContact(page, "Mei Lin");
+  await page
+    .getByPlaceholder(/Add a note/)
+    .fill("Rahul Desai introduced me to Mei at the summit. She spent three years at Helix Bio before joining Northwind. Working on design systems for robot dashboards.");
+  await page.getByRole("button", { name: "Add note" }).click();
+
+  // The note is read in the background, so the suggestions arrive a moment later.
+  await eventually(page, async () => {
+    await expect(page.getByText("Rahul Desai introduced you to Mei")).toBeVisible({ timeout: 2_000 });
+  });
+  const suggestions = page.locator('[data-slot="card"]', { hasText: "Suggestions" });
+  await suggestions.getByRole("button", { name: "Add connection" }).click();
+  const connections = page.locator('[data-slot="card"]', { hasText: "Connections" });
+  await expect(connections.getByText("Introduced you to Mei")).toBeVisible();
+
+  await suggestions.getByRole("button", { name: "Add to past jobs" }).click();
+  await expect(page.locator('[data-slot="card"]', { hasText: "Previously" }).getByText(/Helix Bio/)).toBeVisible();
+  await expect(connections.getByText(/where Mei used to work|Used to work at Helix Bio/).first()).toBeVisible();
+
+  await suggestions.getByRole("button", { name: /^Add topics?$/ }).click();
+  await expect(page.getByRole("list", { name: "Topics" })).toBeVisible();
 });

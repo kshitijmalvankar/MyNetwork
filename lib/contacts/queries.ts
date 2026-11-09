@@ -123,6 +123,8 @@ export type ContactDetail = {
   phones: string[];
   address: string | null;
   pastPositions: PastJob[];
+  /** What they work on, from notes the user confirmed. */
+  topics: string[];
   lastContactedAt: string | null;
   createdAt: string;
   images: { id: string; side: "front" | "back" }[];
@@ -136,7 +138,7 @@ export async function getContactDetail(userId: string, contactId: string, client
   const { data: c } = await supabase
     .from("contacts")
     .select(
-      "id, full_name, name_native, title, title_native, role_family, seniority, industry_override, website, city, country, emails_enc, phones_enc, address_enc, past_positions, last_contacted_at, created_at, companies(id, name, domain, industry)",
+      "id, full_name, name_native, title, title_native, role_family, seniority, industry_override, website, city, country, emails_enc, phones_enc, address_enc, past_positions, topics_enc, last_contacted_at, created_at, companies(id, name, domain, industry)",
     )
     .eq("id", contactId)
     .maybeSingle();
@@ -203,6 +205,7 @@ export async function getContactDetail(userId: string, contactId: string, client
     phones: c.phones_enc ? openJson<string[]>(dek, fromBytea(c.phones_enc), ctx("phones_enc")) : [],
     address: c.address_enc ? openField(dek, fromBytea(c.address_enc), ctx("address_enc")).toString("utf8") : null,
     pastPositions: (c.past_positions as ContactDetail["pastPositions"]) ?? [],
+    topics: c.topics_enc ? openJson<string[]>(dek, fromBytea(c.topics_enc), ctx("topics_enc")) : [],
     lastContactedAt: c.last_contacted_at,
     createdAt: c.created_at,
     images: (images ?? []) as ContactDetail["images"],

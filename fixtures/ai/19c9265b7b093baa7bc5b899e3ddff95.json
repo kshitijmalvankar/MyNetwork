@@ -30,7 +30,7 @@
     "content": [
       {
         "type": "tool-call",
-        "toolCallId": "toolu_bdrk_014CPbHtRwSsVXCG9JXuxDDD",
+        "toolCallId": "toolu_bdrk_01VvrwD53ZAUzvEfYA3yw7qY",
         "toolName": "findContacts",
         "input": "{\"company\": \"Northwind Robotics\"}"
       }
@@ -42,9 +42,9 @@
     "usage": {
       "inputTokens": {
         "total": 3733,
-        "noCache": 123,
-        "cacheRead": 3610,
-        "cacheWrite": 0
+        "noCache": 3733,
+        "cacheRead": 0,
+        "cacheWrite": 3610
       },
       "outputTokens": {
         "total": 55,

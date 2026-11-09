@@ -5,14 +5,16 @@ import { z } from "zod";
 import { reviewedCardSchema } from "@/lib/ai/card-schema";
 import { audit } from "@/lib/audit";
 import { getProfile, requireUser } from "@/lib/auth/dal";
-import { sealField } from "@/lib/crypto/envelope";
+import { openJson, sealField, sealJson } from "@/lib/crypto/envelope";
 import { getUserDataKey } from "@/lib/crypto/user-key";
 import { addNote, addReminder, recordMeeting, updateContactDetails } from "@/lib/contacts/write";
 import { requestReindex } from "@/lib/knowledge/indexer";
 import { rateLimit } from "@/lib/ratelimit";
 import { removeFiles } from "@/lib/storage";
-import { toBytea } from "@/lib/supabase/bytea";
+import { topicsField, type Finding } from "@/lib/suggestions";
+import { fromBytea, toBytea } from "@/lib/supabase/bytea";
 import { createClient } from "@/lib/supabase/server";
+import { mergeTopics, normalizeTopic } from "@/lib/topics";
 
 export type Result = { ok: true } | { ok: false; message: string };
 
@@ -46,6 +48,7 @@ const editSchema = reviewedCardSchema.extend({
     .max(20)
     .optional()
     .transform((jobs) => jobs?.filter((j) => j.company || j.title).map((j) => ({ company: j.company || null, title: j.title || null, until: j.until || null }))),
+  topics: z.array(z.string().trim().max(60)).max(20).optional(),
 });
 
 export async function editContact(contactId: string, input: z.input<typeof editSchema>): Promise<Result> {
@@ -228,6 +231,62 @@ export async function acceptSuggestion(suggestionId: string, input: z.input<type
     await supabase.from("ai_suggestions").update({ status: "accepted", decided_at: new Date().toISOString() }).eq("id", suggestionId);
     await requestReindex(supabase, user.id, { contactIds: [s.contact_id] });
     refresh(s.contact_id);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+const findingSchema = z.object({ topics: z.array(z.string().trim().max(60)).max(12).optional() });
+
+/** Adds what a note showed: a connection, a past job or topics (only the ones the user kept). */
+export async function acceptFinding(suggestionId: string, input: z.input<typeof findingSchema> = {}): Promise<Result> {
+  try {
+    const user = await guard();
+    const parsed = findingSchema.safeParse(input);
+    if (!parsed.success || !id.safeParse(suggestionId).success) return { ok: false, message: "Invalid suggestion" };
+    const supabase = await createClient();
+    const { data: s } = await supabase.from("ai_suggestions").select("id, kind, contact_id, other_id, note_id, status, payload_enc").eq("id", suggestionId).maybeSingle();
+    if (!s || s.status !== "pending" || !s.payload_enc) return { ok: false, message: "That suggestion was already handled." };
+    const dek = await getUserDataKey(user.id);
+    const finding = openJson<Finding>(dek, fromBytea(s.payload_enc), { userId: user.id, table: "ai_suggestions", column: "payload_enc", rowId: s.id });
+
+    if (finding.kind === "connection" && s.other_id) {
+      // Same storage rules as a connection added by hand; "knows" is stored once, smaller id first.
+      const [from, to] = finding.relation === "knows" ? [s.contact_id, s.other_id].sort() : finding.relation === "introduced_by" ? [s.contact_id, s.other_id] : [s.other_id, s.contact_id];
+      const { error } = await supabase
+        .from("contact_links")
+        .insert({ user_id: user.id, contact_id: from, other_id: to, kind: finding.relation === "knows" ? "knows" : "introduced_by", source: "ai", note_id: s.note_id });
+      if (error && error.code !== "23505") throw error;
+      revalidatePath(`/contacts/${s.other_id}`);
+    } else if (finding.kind === "past_job") {
+      const { data: c } = await supabase.from("contacts").select("past_positions").eq("id", s.contact_id).maybeSingle();
+      const past = Array.isArray(c?.past_positions) ? c.past_positions : [];
+      const { error } = await supabase
+        .from("contacts")
+        .update({ past_positions: [...past, { company: finding.company, title: finding.title, until: null }].slice(0, 20) })
+        .eq("id", s.contact_id);
+      if (error) throw error;
+      await requestReindex(supabase, user.id, { contactIds: [s.contact_id] });
+    } else if (finding.kind === "topics") {
+      // Only topics this suggestion offered can be added through it.
+      const offered = new Set(finding.topics);
+      const kept = (parsed.data.topics ?? finding.topics).map((t) => normalizeTopic(t)).filter((t): t is string => Boolean(t && offered.has(t)));
+      if (kept.length === 0) return { ok: false, message: "Keep at least one topic, or dismiss the suggestion." };
+      const { data: c } = await supabase.from("contacts").select("topics_enc").eq("id", s.contact_id).maybeSingle();
+      const current = c?.topics_enc ? openJson<string[]>(dek, fromBytea(c.topics_enc), topicsField(user.id, s.contact_id)) : [];
+      const { error } = await supabase
+        .from("contacts")
+        .update({ topics_enc: toBytea(sealJson(dek, mergeTopics(current, kept), topicsField(user.id, s.contact_id))) })
+        .eq("id", s.contact_id);
+      if (error) throw error;
+    } else {
+      return { ok: false, message: "That suggestion can't be added this way." };
+    }
+
+    await supabase.from("ai_suggestions").update({ status: "accepted", decided_at: new Date().toISOString() }).eq("id", s.id);
+    refresh(s.contact_id);
+    revalidatePath("/graph");
     return { ok: true };
   } catch (err) {
     return fail(err);

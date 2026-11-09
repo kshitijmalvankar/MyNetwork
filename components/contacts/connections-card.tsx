@@ -61,7 +61,7 @@ export function ConnectionsCard({ contactId, name, connections }: { contactId: s
         <CardTitle className="flex items-center gap-2 text-base">
           <WaypointsIcon className="size-4 text-brand" /> Connections
         </CardTitle>
-        <Button size="sm" variant="ghost" aria-label="Add connection" onClick={() => setAdding(true)}>
+        <Button size="sm" variant="ghost" aria-label="Add a connection" onClick={() => setAdding(true)}>
           <PlusIcon /> Add
         </Button>
       </CardHeader>

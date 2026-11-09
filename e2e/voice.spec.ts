@@ -13,5 +13,5 @@ test("records a voice note, transcribes it and suggests the promised follow-up",
   await page.getByRole("button", { name: "Stop" }).click();
 
   await expect(page.getByText(/demo video/i).first()).toBeVisible({ timeout: 45_000 });
-  await eventually(page, () => expect(page.getByText("Suggested follow-ups")).toBeVisible({ timeout: 2_000 }));
+  await eventually(page, () => expect(page.getByText("Suggestions", { exact: true })).toBeVisible({ timeout: 2_000 }));
 });

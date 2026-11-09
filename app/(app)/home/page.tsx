@@ -149,7 +149,7 @@ export default async function HomePage() {
             <CardTitle className="flex items-center gap-2 text-base">
               <SparklesIcon className="size-4 text-brand" /> Suggestions
             </CardTitle>
-            <CardDescription>Follow-ups spotted in your notes, and people it&apos;s been a while since you contacted. Nothing happens unless you add it.</CardDescription>
+            <CardDescription>Spotted in your notes: follow-ups, who knows whom, past jobs and topics. Plus people it&apos;s been a while since you contacted. Nothing is added unless you say so.</CardDescription>
           </CardHeader>
           <CardContent>
             <SuggestionList items={suggestions} today={today} />

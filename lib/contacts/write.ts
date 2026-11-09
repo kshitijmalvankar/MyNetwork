@@ -10,6 +10,7 @@ import { companyKey, findCompanyMatch } from "@/lib/companies";
 import type { PastJob } from "@/lib/connections";
 import { canonicalIndustry } from "@/lib/industries";
 import { suggestFromNote } from "@/lib/suggestions";
+import { mergeTopics } from "@/lib/topics";
 import { fromBytea, toBytea } from "@/lib/supabase/bytea";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +33,7 @@ export type MeetingDetails = {
 
 export type CardImageRef = { side: "front" | "back"; path: string; thumbPath?: string | null };
 
-export type ContactInput = ReviewedCard & { nameNative?: string; titleNative?: string | null; language?: string; industryOverride?: string; pastPositions?: PastJob[] };
+export type ContactInput = ReviewedCard & { nameNative?: string; titleNative?: string | null; language?: string; industryOverride?: string; pastPositions?: PastJob[]; topics?: string[] };
 
 const contactCtx = (userId: string, contactId: string, column: string) => ({ userId, table: "contacts", column, rowId: contactId });
 
@@ -273,6 +274,7 @@ export async function updateContactDetails(userId: string, contactId: string, ca
       phones_enc: phones.length ? toBytea(sealJson(dek, phones, ctx("phones_enc"))) : null,
       address_enc: card.address ? toBytea(sealField(dek, card.address, ctx("address_enc"))) : null,
       past_positions: withPastPosition(existing, companyId, new Date().toISOString().slice(0, 10), card.pastPositions),
+      ...(card.topics ? { topics_enc: card.topics.length ? toBytea(sealJson(dek, mergeTopics([], card.topics), ctx("topics_enc"))) : null } : {}),
     })
     .eq("id", contactId);
   if (error) throw error;
