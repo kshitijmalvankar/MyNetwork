@@ -108,4 +108,10 @@ describe("filters and neighbours", () => {
     expect(matches.map((m) => m.person.id)).toEqual(["c", "d", "b"]);
     expect(matches[0].shared).toEqual(["Engineering", "Robotics"]);
   });
+
+  it("names a shared label once, even when it's both the role and the industry", () => {
+    const both = { roleFamily: "Healthcare", industry: "Healthcare" };
+    const twins: GraphData = { ...data, people: [person("x", both), person("y", both)], similar: [["x", "y", 0.9]] };
+    expect(similarTo(twins, "x")[0].shared).toEqual(["Healthcare"]);
+  });
 });

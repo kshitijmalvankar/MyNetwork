@@ -140,12 +140,17 @@ export function similarTo(data: GraphData, personId: string, limit = 5) {
     .flatMap(([id, score]) => {
       const p = byId.get(id);
       if (!p) return [];
+      // A role and an industry can share a name ("Healthcare"), so each label appears once.
       const shared = [
-        p.roleFamily && p.roleFamily === me.roleFamily && `${p.roleFamily}`,
-        p.industry && p.industry === me.industry && p.industry,
-        p.seniority && p.seniority === me.seniority && p.seniority,
-        p.city && p.city === me.city && p.city,
-      ].filter((s): s is string => Boolean(s));
+        ...new Set(
+          [
+            p.roleFamily && p.roleFamily === me.roleFamily && p.roleFamily,
+            p.industry && p.industry === me.industry && p.industry,
+            p.seniority && p.seniority === me.seniority && p.seniority,
+            p.city && p.city === me.city && p.city,
+          ].filter((s): s is string => Boolean(s)),
+        ),
+      ];
       return [{ person: p, score, shared }];
     });
 }
