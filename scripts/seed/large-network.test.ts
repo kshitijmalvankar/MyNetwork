@@ -61,5 +61,11 @@ describe("largeNetwork", () => {
     }
     expect(truth.pastJobs.some((j) => j.recorded)).toBe(true);
     expect(truth.pastJobs.some((j) => !j.recorded)).toBe(true);
+    // Some introductions are recorded as links; the rest are only in notes, for the AI to find.
+    const told = truth.ties.filter(([, , kind]) => kind !== "former_colleague");
+    expect(told.filter((t) => t[3]).length).toBeGreaterThan(20);
+    expect(told.filter((t) => !t[3]).length).toBeGreaterThan(40);
+    const names = new Set(fixture.contacts.map((p) => p.name));
+    for (const p of fixture.contacts) for (const l of p.links ?? []) expect(names.has(l.to), l.to).toBe(true);
   });
 });

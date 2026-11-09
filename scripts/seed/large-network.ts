@@ -29,8 +29,12 @@ type World = {
 export type Truth = {
   worldOf: Map<string, string>;
   connectors: Set<string>;
-  /** [person, other person, how they're linked] */
-  ties: [string, string, "introduced" | "knows" | "former_colleague"][];
+  /**
+   * [person, other person, how they're linked, whether it's recorded]. Introductions and
+   * "knows" are mentioned in notes, and some are also recorded as links; former colleagues
+   * are recorded when the past job is.
+   */
+  ties: [string, string, "introduced" | "knows" | "former_colleague", boolean][];
   topicsOf: Map<string, string[]>;
   /** Past employers: recorded as past jobs, or only mentioned in a note. */
   pastJobs: { person: string; company: string; recorded: boolean }[];
@@ -295,6 +299,8 @@ type Person = Fixture["contacts"][number] & { world: string };
 
 export function largeNetwork(seed = 20261021): { fixture: Fixture; truth: Truth } {
   const r = rng(seed);
+  // A second stream decides which ties are recorded, so the rest of the network stays as it was.
+  const recordTie = rng(seed + 1);
   const roots = r.shuffle(ROOTS);
   const truth: Truth = { worldOf: new Map(), connectors: new Set(), ties: [], topicsOf: new Map(), pastJobs: [], companyVariants: new Map(), lookAlikes: [] };
 
@@ -507,14 +513,18 @@ export function largeNetwork(seed = 20261021): { fixture: Fixture; truth: Truth 
       const introducer = r.chance(0.5) ? r.pick(people.filter((q) => truth.connectors.has(q.name) && q !== p)) : r.pick(sameWorld(p));
       if (introducer) {
         notes.push(`Introduced by ${introducer.name}.`);
-        truth.ties.push([p.name, introducer.name, "introduced"]);
+        const recorded = recordTie.chance(0.4);
+        if (recorded) p.links = [...(p.links ?? []), { to: introducer.name, kind: "introduced_by" }];
+        truth.ties.push([p.name, introducer.name, "introduced", recorded]);
       }
     }
     if (r.chance(0.1)) {
       const friend = r.pick(sameWorld(p));
       if (friend) {
         notes.push(`Knows ${friend.name} well; they go back years.`);
-        truth.ties.push([p.name, friend.name, "knows"]);
+        const recorded = recordTie.chance(0.4);
+        if (recorded) p.links = [...(p.links ?? []), { to: friend.name, kind: "knows" }];
+        truth.ties.push([p.name, friend.name, "knows", recorded]);
       }
     }
 
@@ -529,7 +539,7 @@ export function largeNetwork(seed = 20261021): { fixture: Fixture; truth: Truth 
       else notes.push(`Spent ${years} years at ${past.name} before joining ${current}.`);
       truth.pastJobs.push({ person: p.name, company: past.name, recorded });
       for (const q of people) {
-        if (q !== p && mainName(q.company) === past.name) truth.ties.push([p.name, q.name, "former_colleague"]);
+        if (q !== p && mainName(q.company) === past.name) truth.ties.push([p.name, q.name, "former_colleague", recorded]);
       }
     }
 

@@ -34,6 +34,8 @@ export type Fixture = {
     notes?: string[];
     reminder?: [string, string];
     pastPositions?: { company: string; title: string; until: string }[];
+    /** Who knows whom, by the other person's name. "introduced_by": they introduced the user to this person. */
+    links?: { to: string; kind: "knows" | "introduced_by" }[];
   }[];
 };
 
@@ -74,7 +76,10 @@ export async function findTestAccount(email: string): Promise<string | undefined
 }
 
 /** Inserts rows a batch at a time; one request per row is too slow for hundreds of people. */
-async function insertAll(table: "events" | "companies" | "contacts" | "contact_identifiers" | "interactions" | "notes" | "reminders", rows: object[]) {
+async function insertAll(
+  table: "events" | "companies" | "contacts" | "contact_identifiers" | "interactions" | "notes" | "reminders" | "contact_links",
+  rows: object[],
+) {
   for (let i = 0; i < rows.length; i += 250) {
     const { error } = await adminClient()
       .from(table)
@@ -173,12 +178,25 @@ export async function seedNetwork(userId: string, { shiftDays = 0, fixture = sma
     }
   }
 
+  // Stated links, once everyone has an id. "Knows" is stored once, smaller id first.
+  const idOf = new Map(contacts.map((c) => [(c as { full_name: string }).full_name, (c as { id: string }).id]));
+  const links = new Map<string, object>();
+  for (const c of fixture.contacts) {
+    for (const l of c.links ?? []) {
+      const [me, other] = [idOf.get(c.name), idOf.get(l.to)];
+      if (!me || !other || me === other) continue;
+      const [from, to] = l.kind === "knows" ? [me, other].sort() : [me, other];
+      links.set(`${from}:${to}:${l.kind}`, { user_id: userId, contact_id: from, other_id: to, kind: l.kind });
+    }
+  }
+
   await insertAll("companies", companies);
   await insertAll("contacts", contacts);
   await insertAll("contact_identifiers", identifiers);
   await insertAll("interactions", interactions);
   await insertAll("notes", notes);
   await insertAll("reminders", reminders);
+  await insertAll("contact_links", [...links.values()]);
 
   let indexed = 0;
   let failed = 0;
